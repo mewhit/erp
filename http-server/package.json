@@ -1,0 +1,23 @@
+{
+  "name": "erp-effect-http-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@effect/platform": "^0.96.1",
+    "@effect/platform-node": "^0.106.0",
+    "drizzle-orm": "^0.45.2",
+    "effect": "^3.21.2",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}

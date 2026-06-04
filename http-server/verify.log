@@ -1,0 +1,13 @@
+
+> erp-effect-http-server@1.0.0 start
+> tsx src/main.ts
+
+[11:35:51.107] INFO (#1): Listening on http://0.0.0.0:3000
+[11:35:51.299] INFO (#12) http.span.1=117ms: Sent HTTP response
+  http.status: [33m200[39m
+  http.method: POST
+  http.url: /auth/login
+[11:35:51.322] INFO (#14) http.span.2=3ms: Sent HTTP response
+  http.status: [33m200[39m
+  http.method: GET
+  http.url: /auth/me
