@@ -1,0 +1,14 @@
+{
+  "name": "erp-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run-e2e.ps1",
+    "test:headed": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run-e2e.ps1 --headed",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0"
+  }
+}
