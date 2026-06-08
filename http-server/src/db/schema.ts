@@ -91,6 +91,118 @@ export const items = pgTable(
   (table) => [uniqueIndex("items_sku_unique").on(table.sku)]
 )
 
+export const customers = pgTable(
+  "customers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    firstName: varchar("first_name", { length: 255 }).notNull(),
+    lastName: varchar("last_name", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull(),
+    phone: varchar("phone", { length: 255 }),
+    isActive: boolean("is_active").default(true).notNull(),
+    deletedAt: timestamp("deleted_at"),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => [uniqueIndex("customers_email_unique").on(table.email)]
+)
+
+export const organizationCustomers = pgTable(
+  "organization_customers",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("organization_customers_org_id_customer_id_unique").on(
+      table.organizationId,
+      table.customerId
+    ),
+    index("organization_customers_organization_id_index").on(
+      table.organizationId
+    ),
+    index("organization_customers_customer_id_index").on(table.customerId)
+  ]
+)
+
+export const workOrders = pgTable(
+  "work_orders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    number: varchar("number", { length: 255 }).notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    description: varchar("description", { length: 1000 }),
+    status: varchar("status", { length: 255 }).default("open").notNull(),
+    deletedAt: timestamp("deleted_at"),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("work_orders_number_unique").on(table.number),
+    index("work_orders_organization_id_index").on(table.organizationId),
+    index("work_orders_customer_id_index").on(table.customerId)
+  ]
+)
+
+export const workOrderItems = pgTable(
+  "work_order_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workOrderId: uuid("work_order_id")
+      .notNull()
+      .references(() => workOrders.id, { onDelete: "cascade" }),
+    itemId: uuid("item_id")
+      .notNull()
+      .references(() => items.id, { onDelete: "cascade" }),
+    description: varchar("description", { length: 1000 }),
+    quantity: integer("quantity").default(1).notNull(),
+    unitPriceCents: integer("unit_price_cents").default(0).notNull(),
+    deletedAt: timestamp("deleted_at"),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => [
+    index("work_order_items_work_order_id_index").on(table.workOrderId),
+    index("work_order_items_item_id_index").on(table.itemId)
+  ]
+)
+
+export const customerWorkOrders = pgTable(
+  "customer_work_orders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    workOrderId: uuid("work_order_id")
+      .notNull()
+      .references(() => workOrders.id, { onDelete: "cascade" }),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("customer_work_orders_customer_id_work_order_id_unique").on(
+      table.customerId,
+      table.workOrderId
+    ),
+    index("customer_work_orders_customer_id_index").on(table.customerId),
+    index("customer_work_orders_work_order_id_index").on(table.workOrderId)
+  ]
+)
+
 export const organizationUserRoles = pgTable(
   "organization_user_roles",
   {

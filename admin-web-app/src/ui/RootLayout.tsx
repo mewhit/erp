@@ -4,6 +4,11 @@ import { clearSession, getStoredSession } from "../services/auth";
 const navItems = [
   { to: "/", label: "Dashboard" },
   { to: "/items", label: "Items" },
+  { to: "/customers", label: "Customers" },
+  { to: "/organization-customers", label: "Org Customers" },
+  { to: "/work-orders", label: "Work Orders" },
+  { to: "/work-order-items", label: "WO Items" },
+  { to: "/customer-work-orders", label: "Customer WOs" },
   { to: "/organizations", label: "Organizations" },
   { to: "/roles", label: "Roles" },
   { to: "/users", label: "Users" }

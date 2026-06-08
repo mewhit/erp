@@ -4,6 +4,7 @@ import { clearSession, getStoredSession } from "../services/auth";
 const navItems = [
   { to: "/", label: "Dashboard" },
   { to: "/orders", label: "Orders" },
+  { to: "/customers", label: "Customers" },
   { to: "/support", label: "Support" }
 ];
 
@@ -23,7 +24,7 @@ export function RootLayout() {
           <div className="text-[1.05rem] font-bold">User Portal</div>
           {session !== undefined && <div className="text-sm text-slate-500">{session.user.name}</div>}
         </div>
-        <nav className="grid grid-cols-1 gap-2 sm:grid-cols-3 md:grid-cols-1" aria-label="Primary navigation">
+        <nav className="grid grid-cols-1 gap-2 sm:grid-cols-4 md:grid-cols-1" aria-label="Primary navigation">
           {navItems.map((item) => (
             <NavLink
               key={item.to}

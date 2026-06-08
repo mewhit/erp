@@ -108,11 +108,18 @@ const createResourceClient = (path: string, options: ApiClientOptions) => ({
 })
 
 export const createApiClient = (options: ApiClientOptions = {}) => ({
+  customer: createResourceClient("/customers/", options),
+  customerWorkOrder: createResourceClient("/customer-work-orders/", options),
+  organizationCustomer: createResourceClient(
+    "/organization-customers/",
+    options
+  ),
   user: createResourceClient("/users/", options),
   organizationUserRole: createResourceClient(
     "/organization-user-roles/",
     options
-  )
+  ),
+  workOrder: createResourceClient("/work-orders/", options)
 })
 
 export const apiClient = createApiClient()

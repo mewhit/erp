@@ -72,6 +72,13 @@ export default defineConfig({
         baseURL: userBaseUrl
       },
       testMatch: /user-add-user\.spec\.ts/
+    },
+    {
+      name: "customer-work-order-item",
+      use: {
+        baseURL: adminBaseUrl
+      },
+      testMatch: /customer-work-order-item\.spec\.ts/
     }
   ]
 });

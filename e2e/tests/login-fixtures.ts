@@ -33,6 +33,65 @@ type AddUserResult = {
   };
 };
 
+type Customer = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+};
+
+type OrganizationCustomer = {
+  id: string;
+  organizationId: string;
+  customerId: string;
+};
+
+type WorkOrder = {
+  id: string;
+  organizationId: string;
+  customerId: string;
+  number: string;
+  title: string;
+  description: string;
+  status: string;
+};
+
+type CustomerWorkOrder = {
+  id: string;
+  customerId: string;
+  workOrderId: string;
+};
+
+type Item = {
+  id: string;
+  name: string;
+  sku: string;
+  description: string;
+  unitPriceCents: number;
+  quantity: number;
+  isActive: boolean;
+};
+
+type WorkOrderItem = {
+  id: string;
+  workOrderId: string;
+  itemId: string;
+  description: string;
+  quantity: number;
+  unitPriceCents: number;
+};
+
+type AddCustomerResult = {
+  customer: Customer;
+  organizationCustomer: OrganizationCustomer;
+};
+
+type AddWorkOrderToCustomerResult = {
+  workOrder: WorkOrder;
+  customerWorkOrder: CustomerWorkOrder;
+};
+
 export async function createTestUser(request: APIRequestContext, portal: string) {
   const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const user = {
@@ -109,8 +168,131 @@ export async function addUserToOrganization(
   return body.data;
 }
 
+export async function addCustomerToOrganization(
+  request: APIRequestContext,
+  input: {
+    organizationId: string;
+    customer: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone: string;
+    };
+  }
+) {
+  const response = await request.post(`${apiBaseUrl}/usecases/add-customer`, {
+    data: input
+  });
+
+  expect(response.status(), await response.text()).toBe(201);
+
+  const body = (await response.json()) as { data: AddCustomerResult };
+  return body.data;
+}
+
+export async function addWorkOrderToCustomer(
+  request: APIRequestContext,
+  input: {
+    customerId: string;
+    workOrder: {
+      organizationId: string;
+      number: string;
+      title: string;
+      description: string;
+      status: string;
+    };
+  }
+) {
+  const response = await request.post(`${apiBaseUrl}/usecases/add-work-order-to-customer`, {
+    data: input
+  });
+
+  expect(response.status(), await response.text()).toBe(201);
+
+  const body = (await response.json()) as { data: AddWorkOrderToCustomerResult };
+  return body.data;
+}
+
+export async function createTestItem(request: APIRequestContext, label: string) {
+  const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const itemInput = {
+    name: `E2E ${label} Item`,
+    sku: `E2E_${label}_${uniqueId}`.replace(/[^a-zA-Z0-9]+/g, "_").toUpperCase(),
+    description: `E2E ${label} item description`,
+    unitPriceCents: 1299,
+    quantity: 25
+  };
+
+  const response = await request.post(`${apiBaseUrl}/items/`, {
+    data: itemInput
+  });
+
+  expect(response.status(), await response.text()).toBe(201);
+
+  const body = (await response.json()) as { data: Item };
+  return body.data;
+}
+
+export async function addItemToWorkOrder(
+  request: APIRequestContext,
+  input: {
+    workOrderId: string;
+    itemId: string;
+    description: string;
+    quantity: number;
+    unitPriceCents: number;
+  }
+) {
+  const response = await request.post(`${apiBaseUrl}/work-order-items/`, {
+    data: input
+  });
+
+  expect(response.status(), await response.text()).toBe(201);
+
+  const body = (await response.json()) as { data: WorkOrderItem };
+  return body.data;
+}
+
+export async function getWorkOrderItem(request: APIRequestContext, id: string) {
+  const response = await request.get(`${apiBaseUrl}/work-order-items/${id}`);
+  expect(response.status(), await response.text()).toBe(200);
+
+  const body = (await response.json()) as { data: WorkOrderItem };
+  return body.data;
+}
+
 export async function deleteOrganizationUserRole(request: APIRequestContext, id: string) {
   const response = await request.delete(`${apiBaseUrl}/organization-user-roles/${id}`);
+  expect([204, 404]).toContain(response.status());
+}
+
+export async function deleteOrganizationCustomer(request: APIRequestContext, id: string) {
+  const response = await request.delete(`${apiBaseUrl}/organization-customers/${id}`);
+  expect([204, 404]).toContain(response.status());
+}
+
+export async function deleteCustomerWorkOrder(request: APIRequestContext, id: string) {
+  const response = await request.delete(`${apiBaseUrl}/customer-work-orders/${id}`);
+  expect([204, 404]).toContain(response.status());
+}
+
+export async function deleteWorkOrderItem(request: APIRequestContext, id: string) {
+  const response = await request.delete(`${apiBaseUrl}/work-order-items/${id}`);
+  expect([204, 404]).toContain(response.status());
+}
+
+export async function deleteWorkOrder(request: APIRequestContext, id: string) {
+  const response = await request.delete(`${apiBaseUrl}/work-orders/${id}`);
+  expect([204, 404]).toContain(response.status());
+}
+
+export async function deleteCustomer(request: APIRequestContext, id: string) {
+  const response = await request.delete(`${apiBaseUrl}/customers/${id}`);
+  expect([204, 404]).toContain(response.status());
+}
+
+export async function deleteItem(request: APIRequestContext, id: string) {
+  const response = await request.delete(`${apiBaseUrl}/items/${id}`);
   expect([204, 404]).toContain(response.status());
 }
 
