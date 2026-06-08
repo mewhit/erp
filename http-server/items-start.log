@@ -1,0 +1,9 @@
+
+> erp-effect-http-server@1.0.0 start
+> tsx src/main.ts
+
+[10:13:06.906] INFO (#1): Listening on http://0.0.0.0:3001
+[10:13:07.971] INFO (#12) http.span.1=37ms: Sent HTTP response
+  http.status: [33m200[39m
+  http.method: GET
+  http.url: /items/

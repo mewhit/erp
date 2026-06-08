@@ -79,19 +79,20 @@ function Start-E2EServer {
 $startedProcesses = @()
 
 try {
-  $env:PORT = "3000"
+  $apiBaseUrl = "http://127.0.0.1:3020"
+  $env:PORT = "3020"
   $env:DATABASE_URL = "postgres://postgres:postgres@localhost:5432/organization_assistant_db"
   $api = Start-E2EServer `
     -Name "api" `
     -WorkingDirectory (Join-Path $repoRoot "http-server") `
     -Arguments @("node_modules/tsx/dist/cli.mjs", "src/main.ts") `
-    -ReadyUrl "http://127.0.0.1:3000/health-check"
+    -ReadyUrl "$apiBaseUrl/health-check"
 
   if ($null -ne $api) {
     $startedProcesses += $api
   }
 
-  $env:VITE_API_BASE_URL = "http://127.0.0.1:3000"
+  $env:VITE_API_BASE_URL = $apiBaseUrl
   $admin = Start-E2EServer `
     -Name "admin-web-app" `
     -WorkingDirectory (Join-Path $repoRoot "admin-web-app") `

@@ -1,5 +1,6 @@
 import {
   boolean,
+  index,
   integer,
   pgTable,
   timestamp,
@@ -57,4 +58,65 @@ export const authentications = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull()
   },
   (table) => [uniqueIndex("authentications_user_id_unique").on(table.userId)]
+)
+
+export const roles = pgTable(
+  "roles",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    code: varchar("code", { length: 255 }).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    deletedAt: timestamp("deleted_at"),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => [uniqueIndex("roles_code_unique").on(table.code)]
+)
+
+export const items = pgTable(
+  "items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    sku: varchar("sku", { length: 255 }).notNull(),
+    description: varchar("description", { length: 1000 }),
+    unitPriceCents: integer("unit_price_cents").default(0).notNull(),
+    quantity: integer("quantity").default(0).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    deletedAt: timestamp("deleted_at"),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => [uniqueIndex("items_sku_unique").on(table.sku)]
+)
+
+export const organizationUserRoles = pgTable(
+  "organization_user_roles",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    roleId: uuid("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "cascade" }),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => [
+    uniqueIndex("organization_user_roles_org_id_user_id_role_id_unique").on(
+      table.organizationId,
+      table.userId,
+      table.roleId
+    ),
+    index("organization_user_roles_organization_id_index").on(
+      table.organizationId
+    ),
+    index("organization_user_roles_user_id_index").on(table.userId),
+    index("organization_user_roles_role_id_index").on(table.roleId)
+  ]
 )

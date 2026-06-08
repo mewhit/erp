@@ -3,7 +3,9 @@ import { clearSession, getStoredSession } from "../services/auth";
 
 const navItems = [
   { to: "/", label: "Dashboard" },
+  { to: "/items", label: "Items" },
   { to: "/organizations", label: "Organizations" },
+  { to: "/roles", label: "Roles" },
   { to: "/users", label: "Users" }
 ];
 

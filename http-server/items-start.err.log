@@ -1,0 +1,5 @@
+npm warn Unknown env config "argv". This will stop working in the next major version of npm.
+npm warn Unknown env config "version-commit-hooks". This will stop working in the next major version of npm.
+npm warn Unknown env config "version-git-message". This will stop working in the next major version of npm.
+npm warn Unknown env config "version-git-tag". This will stop working in the next major version of npm.
+npm warn Unknown env config "version-tag-prefix". This will stop working in the next major version of npm.

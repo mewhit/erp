@@ -37,10 +37,53 @@ CREATE TABLE IF NOT EXISTS organizations (
   created_at timestamp NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS roles (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name varchar(255) NOT NULL,
+  code varchar(255) NOT NULL UNIQUE,
+  is_active boolean NOT NULL DEFAULT true,
+  deleted_at timestamp,
+  updated_at timestamp NOT NULL DEFAULT now(),
+  created_at timestamp NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS items (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name varchar(255) NOT NULL,
+  sku varchar(255) NOT NULL UNIQUE,
+  description varchar(1000),
+  unit_price_cents integer NOT NULL DEFAULT 0,
+  quantity integer NOT NULL DEFAULT 0,
+  is_active boolean NOT NULL DEFAULT true,
+  deleted_at timestamp,
+  updated_at timestamp NOT NULL DEFAULT now(),
+  created_at timestamp NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS organization_user_roles (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role_id uuid NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+  updated_at timestamp NOT NULL DEFAULT now(),
+  created_at timestamp NOT NULL DEFAULT now(),
+  CONSTRAINT organization_user_roles_org_id_user_id_role_id_unique UNIQUE (organization_id, user_id, role_id)
+);
+
+CREATE INDEX IF NOT EXISTS organization_user_roles_organization_id_index ON organization_user_roles(organization_id);
+CREATE INDEX IF NOT EXISTS organization_user_roles_user_id_index ON organization_user_roles(user_id);
+CREATE INDEX IF NOT EXISTS organization_user_roles_role_id_index ON organization_user_roles(role_id);
+
 INSERT INTO organizations (name, slug, created_at, updated_at)
 VALUES
   ('Mewhit', 'MEWHIT', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')
 ON CONFLICT (slug) DO NOTHING;
+
+INSERT INTO roles (name, code, created_at, updated_at)
+VALUES
+  ('Admin', 'ADMIN', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),
+  ('Customer', 'CUSTOMER', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')
+ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO users (display_name, email, created_at, updated_at)
 VALUES

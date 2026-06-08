@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
 
-const apiBaseUrl = "http://127.0.0.1:3000";
+const apiBaseUrl = "http://127.0.0.1:3020";
 const adminBaseUrl = "http://127.0.0.1:5180";
 const customerBaseUrl = "http://127.0.0.1:5181";
 const shouldStartWebServers = process.env.PLAYWRIGHT_START_WEBSERVER === "1";
@@ -25,7 +25,7 @@ export default defineConfig({
           reuseExistingServer: true,
           timeout: 120_000,
           env: {
-            PORT: "3000",
+            PORT: "3020",
             DATABASE_URL: "postgres://postgres:postgres@localhost:5432/organization_assistant_db"
           }
         },
@@ -65,6 +65,13 @@ export default defineConfig({
         baseURL: customerBaseUrl
       },
       testMatch: /customer-login\.spec\.ts/
+    },
+    {
+      name: "customer-add-user",
+      use: {
+        baseURL: customerBaseUrl
+      },
+      testMatch: /customer-add-user\.spec\.ts/
     }
   ]
 });
