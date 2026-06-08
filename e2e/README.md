@@ -1,6 +1,6 @@
 # ERP E2E Tests
 
-Playwright tests cover login for the admin app and customer portal.
+Playwright tests cover login for the admin app and user portal.
 
 ## Run
 
@@ -9,7 +9,7 @@ npm.cmd install
 npm.cmd run test
 ```
 
-The test script starts the API on `3000`, admin app on `5180`, and customer portal on `5181`, then stops the processes when the run finishes.
+The test script starts the API on `3000`, admin app on `5180`, and user portal on `5181`, then stops the processes when the run finishes.
 
 Postgres must be available at:
 

@@ -20,7 +20,7 @@ export function RootLayout() {
     <div className="grid min-h-screen grid-cols-1 bg-slate-50 text-slate-900 antialiased md:grid-cols-[240px_minmax(0,1fr)]">
       <aside className="flex flex-col gap-6 border-b border-slate-200 bg-white px-[18px] py-[18px] md:border-r md:border-b-0 md:py-6">
         <div className="grid gap-1">
-          <div className="text-[1.05rem] font-bold">Customer Portal</div>
+          <div className="text-[1.05rem] font-bold">User Portal</div>
           {session !== undefined && <div className="text-sm text-slate-500">{session.user.name}</div>}
         </div>
         <nav className="grid grid-cols-1 gap-2 sm:grid-cols-3 md:grid-cols-1" aria-label="Primary navigation">

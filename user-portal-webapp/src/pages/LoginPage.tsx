@@ -37,7 +37,7 @@ export function LoginPage() {
     <main className="grid min-h-screen place-items-center bg-slate-50 px-[18px] text-slate-900 antialiased">
       <section className="w-full max-w-[420px] rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
         <header className="mb-6">
-          <p className="mb-2 text-sm font-bold text-cyan-800">Customer Portal</p>
+          <p className="mb-2 text-sm font-bold text-cyan-800">User Portal</p>
           <h1 className="m-0 text-3xl font-bold tracking-normal">Sign in</h1>
         </header>
 

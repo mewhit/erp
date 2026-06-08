@@ -1,5 +1,5 @@
 import { useEffectQuery } from "../hooks";
-import { getDashboardStats } from "../services/customerData";
+import { getDashboardStats } from "../services/userData";
 
 export function DashboardPage() {
   const stats = useEffectQuery(getDashboardStats);

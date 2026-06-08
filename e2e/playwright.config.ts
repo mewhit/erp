@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 const apiBaseUrl = "http://127.0.0.1:3020";
 const adminBaseUrl = "http://127.0.0.1:5180";
-const customerBaseUrl = "http://127.0.0.1:5181";
+const userBaseUrl = "http://127.0.0.1:5181";
 const shouldStartWebServers = process.env.PLAYWRIGHT_START_WEBSERVER === "1";
 
 export default defineConfig({
@@ -41,8 +41,8 @@ export default defineConfig({
         },
         {
           command:
-            "node ../customer-portal-webapp/node_modules/vite/bin/vite.js ../customer-portal-webapp --host 127.0.0.1 --port 5181 --strictPort",
-          url: customerBaseUrl,
+            "node ../user-portal-webapp/node_modules/vite/bin/vite.js ../user-portal-webapp --host 127.0.0.1 --port 5181 --strictPort",
+          url: userBaseUrl,
           reuseExistingServer: true,
           timeout: 120_000,
           env: {
@@ -60,18 +60,18 @@ export default defineConfig({
       testMatch: /admin-login\.spec\.ts/
     },
     {
-      name: "customer-login",
+      name: "user-login",
       use: {
-        baseURL: customerBaseUrl
+        baseURL: userBaseUrl
       },
-      testMatch: /customer-login\.spec\.ts/
+      testMatch: /user-login\.spec\.ts/
     },
     {
-      name: "customer-add-user",
+      name: "user-add-user",
       use: {
-        baseURL: customerBaseUrl
+        baseURL: userBaseUrl
       },
-      testMatch: /customer-add-user\.spec\.ts/
+      testMatch: /user-add-user\.spec\.ts/
     }
   ]
 });

@@ -103,14 +103,14 @@ try {
     $startedProcesses += $admin
   }
 
-  $customer = Start-E2EServer `
-    -Name "customer-portal-webapp" `
-    -WorkingDirectory (Join-Path $repoRoot "customer-portal-webapp") `
+  $user = Start-E2EServer `
+    -Name "user-portal-webapp" `
+    -WorkingDirectory (Join-Path $repoRoot "user-portal-webapp") `
     -Arguments @("node_modules/vite/bin/vite.js", "--host", "127.0.0.1", "--port", "5181", "--strictPort") `
     -ReadyUrl "http://127.0.0.1:5181"
 
-  if ($null -ne $customer) {
-    $startedProcesses += $customer
+  if ($null -ne $user) {
+    $startedProcesses += $user
   }
 
   $playwright = Join-Path $e2eRoot "node_modules\.bin\playwright.cmd"

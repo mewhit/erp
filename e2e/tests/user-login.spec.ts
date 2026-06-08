@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { createTestUser, testPassword } from "./login-fixtures";
 
-test("customer user can sign in", async ({ page, request }) => {
-  const user = await createTestUser(request, "customer");
+test("user can sign in", async ({ page, request }) => {
+  const user = await createTestUser(request, "user");
 
   await page.goto("/login");
   await page.getByLabel("Email").fill(user.email);
@@ -14,9 +14,9 @@ test("customer user can sign in", async ({ page, request }) => {
   await expect(page.getByText(user.name)).toBeVisible();
 });
 
-test("customer login shows an error for invalid credentials", async ({ page }) => {
+test("user login shows an error for invalid credentials", async ({ page }) => {
   await page.goto("/login");
-  await page.getByLabel("Email").fill("missing-customer@example.com");
+  await page.getByLabel("Email").fill("missing-user@example.com");
   await page.getByLabel("Password").fill("wrong-password");
   await page.getByRole("button", { name: "Sign in" }).click();
 

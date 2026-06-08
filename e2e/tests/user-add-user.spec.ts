@@ -9,19 +9,19 @@ import {
   testPassword
 } from "./login-fixtures";
 
-test("customer can create a new user", async ({ page, request }) => {
-  const customer = await createTestUser(request, "customer-creator");
+test("user can create a new user", async ({ page, request }) => {
+  const user = await createTestUser(request, "user-creator");
   const organization = await getDefaultOrganization(request);
-  const customerRole = await getRoleByCode(request, "CUSTOMER");
+  const userRole = await getRoleByCode(request, "USER");
   const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const newUser = {
-    name: "E2E Customer Created User",
-    email: `e2e-customer-created-${uniqueId}@example.com`,
+    name: "E2E User Created User",
+    email: `e2e-user-created-${uniqueId}@example.com`,
     password: testPassword
   };
 
   await page.goto("/login");
-  await page.getByLabel("Email").fill(customer.email);
+  await page.getByLabel("Email").fill(user.email);
   await page.getByLabel("Password").fill(testPassword);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
@@ -29,14 +29,14 @@ test("customer can create a new user", async ({ page, request }) => {
   const result = await addUserToOrganization(request, {
     user: newUser,
     organizationId: organization.id,
-    roleId: customerRole.id
+    roleId: userRole.id
   });
 
   try {
     expect(result.user.email).toBe(newUser.email);
     expect(result.organizationUserRole.organizationId).toBe(organization.id);
     expect(result.organizationUserRole.userId).toBe(result.user.id);
-    expect(result.organizationUserRole.roleId).toBe(customerRole.id);
+    expect(result.organizationUserRole.roleId).toBe(userRole.id);
 
     await page.getByRole("button", { name: "Sign out" }).click();
     await page.getByLabel("Email").fill(newUser.email);

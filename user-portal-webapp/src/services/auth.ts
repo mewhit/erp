@@ -11,7 +11,7 @@ export type AuthSession = {
 };
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
-const storageKey = "erp-customer-auth-session";
+const storageKey = "erp-user-auth-session";
 
 export async function login(email: string, password: string): Promise<AuthSession> {
   const response = await fetch(`${apiBaseUrl}/auth/login`, {

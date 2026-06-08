@@ -66,9 +66,25 @@ export async function getRoleByCode(request: APIRequestContext, code: string) {
 
   const body = (await response.json()) as ApiListResponse<Role>;
   const role = body.data.find((item) => item.code === code);
-  expect(role, `Role ${code} should exist`).toBeDefined();
 
-  return role!;
+  if (role !== undefined) {
+    return role;
+  }
+
+  const name = code
+    .toLowerCase()
+    .replace(/(^|-)([a-z])/g, (_match, prefix: string, value: string) => `${prefix}${value.toUpperCase()}`);
+
+  const createResponse = await request.post(`${apiBaseUrl}/roles/`, {
+    data: {
+      name,
+      code
+    }
+  });
+  expect(createResponse.status(), await createResponse.text()).toBe(201);
+
+  const createBody = (await createResponse.json()) as { data: Role };
+  return createBody.data;
 }
 
 export async function addUserToOrganization(

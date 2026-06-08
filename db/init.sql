@@ -82,7 +82,7 @@ ON CONFLICT (slug) DO NOTHING;
 INSERT INTO roles (name, code, created_at, updated_at)
 VALUES
   ('Admin', 'ADMIN', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),
-  ('Customer', 'CUSTOMER', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')
+  ('User', 'USER', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO users (display_name, email, created_at, updated_at)
