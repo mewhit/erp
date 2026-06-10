@@ -1,0 +1,11 @@
+.git
+.tmp
+node_modules
+admin-web-app/dist
+user-portal-webapp/dist
+http-server/dist
+coverage
+playwright-report
+test-results
+.env
+*.log
