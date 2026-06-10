@@ -9,7 +9,7 @@
     "e2e"
   ],
   "scripts": {
-    "dev": "concurrently --kill-others-on-fail -n api,admin,portal -c cyan,green,magenta \"cross-env PORT=3065 yarn workspace erp-effect-http-server dev\" \"cross-env VITE_API_BASE_URL=http://127.0.0.1:3065 yarn workspace admin-web-app dev --host 127.0.0.1 --port 3066 --strictPort\" \"cross-env VITE_API_BASE_URL=http://127.0.0.1:3065 yarn workspace user-portal-webapp dev --host 127.0.0.1 --port 3067 --strictPort\"",
+    "dev": "node scripts/dev.mjs",
     "build": "yarn workspace erp-effect-http-server build && yarn workspace admin-web-app build && yarn workspace user-portal-webapp build",
     "db:generate": "yarn workspace erp-effect-http-server db:generate",
     "db:migrate": "yarn workspace erp-effect-http-server db:migrate",

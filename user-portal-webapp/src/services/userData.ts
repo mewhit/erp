@@ -1,4 +1,5 @@
 import { Data, Effect, Schema } from "effect";
+import { apiBaseUrl } from "../config";
 import { getStoredSession } from "./auth";
 
 const OrganizationSchema = Schema.Struct({
@@ -220,8 +221,6 @@ class ApiError extends Data.TaggedError("ApiError")<{
   message: string;
   status?: number;
 }> {}
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
 const getAuthHeaders = (): Record<string, string> => {
   const session = getStoredSession();

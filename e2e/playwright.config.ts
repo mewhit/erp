@@ -1,8 +1,15 @@
 import { defineConfig } from "@playwright/test";
+import { getRequiredEnv } from "./env";
 
-const apiBaseUrl = "http://127.0.0.1:3020";
-const adminBaseUrl = "http://127.0.0.1:5180";
-const userBaseUrl = "http://127.0.0.1:5181";
+const apiBaseUrl = getRequiredEnv("API_BASE_URL");
+const adminBaseUrl = getRequiredEnv("ADMIN_BASE_URL");
+const userBaseUrl = getRequiredEnv("USER_BASE_URL");
+const apiPort = getRequiredEnv("API_PORT");
+const adminHost = getRequiredEnv("ADMIN_HOST");
+const adminPort = getRequiredEnv("ADMIN_PORT");
+const userHost = getRequiredEnv("USER_HOST");
+const userPort = getRequiredEnv("USER_PORT");
+const databaseUrl = getRequiredEnv("DATABASE_URL");
 const shouldStartWebServers = process.env.PLAYWRIGHT_START_WEBSERVER === "1";
 
 export default defineConfig({
@@ -25,13 +32,14 @@ export default defineConfig({
           reuseExistingServer: true,
           timeout: 120_000,
           env: {
-            PORT: "3020",
-            DATABASE_URL: "postgres://postgres:postgres@localhost:5432/erp"
+            PORT: apiPort,
+            DATABASE_URL: databaseUrl,
+            API_CLIENT_BASE_URL: apiBaseUrl
           }
         },
         {
           command:
-            "node ../admin-web-app/node_modules/vite/bin/vite.js ../admin-web-app --host 127.0.0.1 --port 5180 --strictPort",
+            `node ../admin-web-app/node_modules/vite/bin/vite.js ../admin-web-app --host ${adminHost} --port ${adminPort} --strictPort`,
           url: adminBaseUrl,
           reuseExistingServer: true,
           timeout: 120_000,
@@ -41,7 +49,7 @@ export default defineConfig({
         },
         {
           command:
-            "node ../user-portal-webapp/node_modules/vite/bin/vite.js ../user-portal-webapp --host 127.0.0.1 --port 5181 --strictPort",
+            `node ../user-portal-webapp/node_modules/vite/bin/vite.js ../user-portal-webapp --host ${userHost} --port ${userPort} --strictPort`,
           url: userBaseUrl,
           reuseExistingServer: true,
           timeout: 120_000,

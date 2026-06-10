@@ -17,6 +17,8 @@ kill_timeout = '30s'
 [env]
   NODE_ENV = 'production'
   PORT = '3000'
+  API_CLIENT_BASE_URL = 'http://127.0.0.1:3000'
+  API_UPSTREAM = '127.0.0.1:3000'
 
 [http_service]
   internal_port = 8080

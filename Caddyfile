@@ -26,7 +26,7 @@
 
 	@api host erp-api.mewhit.com
 	handle @api {
-		reverse_proxy 127.0.0.1:3000
+		reverse_proxy {$API_UPSTREAM}
 	}
 
 	handle {

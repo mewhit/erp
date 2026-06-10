@@ -15,6 +15,60 @@ New-Item -ItemType Directory -Force -Path $logRoot | Out-Null
 $env:TEMP = Join-Path $repoRoot ".tmp"
 $env:TMP = Join-Path $repoRoot ".tmp"
 
+function Import-DotEnv {
+  param([string]$Path)
+
+  if (!(Test-Path $Path)) {
+    return
+  }
+
+  foreach ($line in Get-Content $Path) {
+    $trimmed = $line.Trim()
+
+    if ($trimmed.Length -eq 0 -or $trimmed.StartsWith("#")) {
+      continue
+    }
+
+    $separatorIndex = $trimmed.IndexOf("=")
+
+    if ($separatorIndex -le 0) {
+      continue
+    }
+
+    $key = $trimmed.Substring(0, $separatorIndex).Trim()
+    $value = $trimmed.Substring($separatorIndex + 1).Trim()
+
+    if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+      $value = $value.Substring(1, $value.Length - 2)
+    }
+
+    if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($key, "Process"))) {
+      [Environment]::SetEnvironmentVariable($key, $value, "Process")
+    }
+  }
+}
+
+function Get-EnvValue {
+  param(
+    [string]$Name,
+    [string]$Fallback = ""
+  )
+
+  $value = [Environment]::GetEnvironmentVariable($Name, "Process")
+
+  if (![string]::IsNullOrWhiteSpace($value)) {
+    return $value
+  }
+
+  if (![string]::IsNullOrWhiteSpace($Fallback)) {
+    return $Fallback
+  }
+
+  throw "$Name must be set in the environment or .env"
+}
+
+Import-DotEnv -Path (Join-Path $e2eRoot ".env")
+
 function Test-Url {
   param([string]$Url)
 
@@ -79,9 +133,10 @@ function Start-E2EServer {
 $startedProcesses = @()
 
 try {
-  $apiBaseUrl = "http://127.0.0.1:3020"
-  $env:PORT = "3020"
-  $env:DATABASE_URL = "postgres://postgres:postgres@localhost:5432/erp"
+  $apiBaseUrl = Get-EnvValue -Name "API_BASE_URL"
+  $env:PORT = Get-EnvValue -Name "API_PORT"
+  $env:DATABASE_URL = Get-EnvValue -Name "DATABASE_URL"
+  $env:API_CLIENT_BASE_URL = $apiBaseUrl
   $api = Start-E2EServer `
     -Name "api" `
     -WorkingDirectory (Join-Path $repoRoot "http-server") `
@@ -93,21 +148,27 @@ try {
   }
 
   $env:VITE_API_BASE_URL = $apiBaseUrl
+  $adminBaseUrl = Get-EnvValue -Name "ADMIN_BASE_URL"
+  $adminHost = Get-EnvValue -Name "ADMIN_HOST"
+  $adminPort = Get-EnvValue -Name "ADMIN_PORT"
   $admin = Start-E2EServer `
     -Name "admin-web-app" `
     -WorkingDirectory (Join-Path $repoRoot "admin-web-app") `
-    -Arguments @("node_modules/vite/bin/vite.js", "--host", "127.0.0.1", "--port", "5180", "--strictPort") `
-    -ReadyUrl "http://127.0.0.1:5180"
+    -Arguments @("node_modules/vite/bin/vite.js", "--host", $adminHost, "--port", $adminPort, "--strictPort") `
+    -ReadyUrl $adminBaseUrl
 
   if ($null -ne $admin) {
     $startedProcesses += $admin
   }
 
+  $userBaseUrl = Get-EnvValue -Name "USER_BASE_URL"
+  $userHost = Get-EnvValue -Name "USER_HOST"
+  $userPort = Get-EnvValue -Name "USER_PORT"
   $user = Start-E2EServer `
     -Name "user-portal-webapp" `
     -WorkingDirectory (Join-Path $repoRoot "user-portal-webapp") `
-    -Arguments @("node_modules/vite/bin/vite.js", "--host", "127.0.0.1", "--port", "5181", "--strictPort") `
-    -ReadyUrl "http://127.0.0.1:5181"
+    -Arguments @("node_modules/vite/bin/vite.js", "--host", $userHost, "--port", $userPort, "--strictPort") `
+    -ReadyUrl $userBaseUrl
 
   if ($null -ne $user) {
     $startedProcesses += $user

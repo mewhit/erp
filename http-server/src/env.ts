@@ -6,8 +6,7 @@ const moduleDir = dirname(fileURLToPath(import.meta.url))
 
 const envPaths = [
   resolve(process.cwd(), ".env"),
-  resolve(process.cwd(), "../.env"),
-  resolve(moduleDir, "../../.env")
+  resolve(moduleDir, "../.env")
 ]
 
 const parseEnvLine = (line: string): [string, string] | undefined => {
@@ -46,7 +45,17 @@ if (envPath) {
 
     if (entry) {
       const [key, value] = entry
-      process.env[key] = value
+      process.env[key] ??= value
     }
   }
+}
+
+export const getRequiredEnv = (key: string): string => {
+  const value = process.env[key]?.trim()
+
+  if (value) {
+    return value
+  }
+
+  throw new Error(`${key} must be set in the environment or .env`)
 }

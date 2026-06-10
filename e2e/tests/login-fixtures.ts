@@ -1,6 +1,7 @@
 import { expect, type APIRequestContext } from "@playwright/test";
+import { getRequiredEnv } from "../env";
 
-export const apiBaseUrl = "http://127.0.0.1:3020";
+export const apiBaseUrl = getRequiredEnv("API_BASE_URL");
 export const testPassword = "Playwright-login-2026!";
 
 type ApiListResponse<T> = {

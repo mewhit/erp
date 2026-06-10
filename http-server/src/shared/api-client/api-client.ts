@@ -1,4 +1,5 @@
 import { Data, Effect } from "effect"
+import { getRequiredEnv } from "../../env.js"
 
 export class ApiClientError extends Data.TaggedError("ApiClientError")<{
   message: string
@@ -18,9 +19,10 @@ export type ApiClientOptions = {
   headers?: Record<string, string>
 }
 
-const defaultApiBaseUrl =
-  process.env.API_CLIENT_BASE_URL ??
-  `http://127.0.0.1:${process.env.PORT ?? "3000"}`
+const normalizeBaseUrl = (baseUrl: string): string =>
+  baseUrl.trim().replace(/\/+$/, "")
+
+const defaultApiBaseUrl = normalizeBaseUrl(getRequiredEnv("API_CLIENT_BASE_URL"))
 
 const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : "Unexpected API client failure"
@@ -42,9 +44,11 @@ export const requestJson = ({
   headers = {}
 }: RequestJsonInput): Effect.Effect<unknown, ApiClientError> =>
   Effect.gen(function* () {
+    const requestBaseUrl = normalizeBaseUrl(baseUrl)
+
     const response = yield* Effect.tryPromise({
       try: () =>
-        fetch(`${baseUrl}${path}`, {
+        fetch(`${requestBaseUrl}${path}`, {
           method,
           headers: {
             ...(body === undefined ? {} : { "Content-Type": "application/json" }),

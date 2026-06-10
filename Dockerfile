@@ -29,6 +29,8 @@ RUN apk add --no-cache caddy
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV API_CLIENT_BASE_URL=http://127.0.0.1:3000
+ENV API_UPSTREAM=127.0.0.1:3000
 
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json

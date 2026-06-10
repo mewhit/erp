@@ -3,6 +3,7 @@ import * as NodeHttpServer from "@effect/platform-node/NodeHttpServer"
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime"
 import { Config, Layer } from "effect"
 import { createServer } from "node:http"
+import "./env.js"
 import { authGuard, authPublicRoutes, authRoutes } from "./auth/index.js"
 import { customerWorkOrderRoutes } from "./customer-work-order/index.js"
 import { customerRoutes } from "./customer/index.js"
@@ -25,8 +26,8 @@ server.once("listening", () => {
       ? address.port
       : process.env.PORT ?? "3000"
 
-  console.log(`API server listening on http://127.0.0.1:${port}`)
-  console.log(`Health check: http://127.0.0.1:${port}/health-check`)
+  console.log(`API server listening on port ${port}`)
+  console.log("Health check path: /health-check")
 })
 
 const routes = HttpRouter.empty.pipe(
