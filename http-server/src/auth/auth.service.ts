@@ -30,6 +30,6 @@ export const AuthService = {
       return undefined
     }
 
-    return UserStorage.findById(payload.sub)
+    return UserStorage.findById(payload.userId)
   }
 }

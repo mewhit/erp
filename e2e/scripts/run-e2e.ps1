@@ -81,7 +81,7 @@ $startedProcesses = @()
 try {
   $apiBaseUrl = "http://127.0.0.1:3020"
   $env:PORT = "3020"
-  $env:DATABASE_URL = "postgres://postgres:postgres@localhost:5432/organization_assistant_db"
+  $env:DATABASE_URL = "postgres://postgres:postgres@localhost:5432/erp"
   $api = Start-E2EServer `
     -Name "api" `
     -WorkingDirectory (Join-Path $repoRoot "http-server") `

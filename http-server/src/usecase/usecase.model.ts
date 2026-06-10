@@ -5,6 +5,7 @@ import {
 } from "../customer/customer.model.js"
 import { CustomerWorkOrder } from "../customer-work-order/customer-work-order.model.js"
 import { OrganizationCustomer } from "../organization-customer/organization-customer.model.js"
+import { WorkOrderItem } from "../work-order-item/work-order-item.model.js"
 import { WorkOrder } from "../work-order/work-order.model.js"
 
 export const AddUserUserInput = Schema.Struct({
@@ -47,6 +48,36 @@ export const AddWorkOrderToCustomerInput = Schema.Struct({
 export type AddWorkOrderToCustomerInput =
   typeof AddWorkOrderToCustomerInput.Type
 
+export const AddWorkOrderItemInput = Schema.Struct({
+  itemId: Schema.String,
+  description: Schema.String,
+  quantity: Schema.Number,
+  unitPriceCents: Schema.Number
+})
+
+export type AddWorkOrderItemInput = typeof AddWorkOrderItemInput.Type
+
+export const RemoveWorkOrderItemInput = Schema.Struct({
+  workOrderItemId: Schema.String,
+  quantity: Schema.Number
+})
+
+export type RemoveWorkOrderItemInput = typeof RemoveWorkOrderItemInput.Type
+
+export const SetWorkOrderItemQuantityInput = Schema.Struct({
+  workOrderItemId: Schema.String,
+  quantity: Schema.Number
+})
+
+export type SetWorkOrderItemQuantityInput =
+  typeof SetWorkOrderItemQuantityInput.Type
+
+export const SetWorkOrderStatusInput = Schema.Struct({
+  status: Schema.String
+})
+
+export type SetWorkOrderStatusInput = typeof SetWorkOrderStatusInput.Type
+
 export const AddUserUser = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
@@ -81,6 +112,32 @@ export const AddWorkOrderToCustomerResult = Schema.Struct({
 
 export type AddWorkOrderToCustomerResult =
   typeof AddWorkOrderToCustomerResult.Type
+
+export const AddWorkOrderItemResult = WorkOrderItem
+
+export type AddWorkOrderItemResult = typeof AddWorkOrderItemResult.Type
+
+export const RemoveWorkOrderItemResult = Schema.Struct({
+  workOrderItemId: Schema.String,
+  removed: Schema.Boolean,
+  remainingQuantity: Schema.Number
+})
+
+export type RemoveWorkOrderItemResult =
+  typeof RemoveWorkOrderItemResult.Type
+
+export const SetWorkOrderItemQuantityResult = Schema.Struct({
+  workOrderItemId: Schema.String,
+  removed: Schema.Boolean,
+  quantity: Schema.Number
+})
+
+export type SetWorkOrderItemQuantityResult =
+  typeof SetWorkOrderItemQuantityResult.Type
+
+export const SetWorkOrderStatusResult = WorkOrder
+
+export type SetWorkOrderStatusResult = typeof SetWorkOrderStatusResult.Type
 
 export const AddUserResult = Schema.Struct({
   user: AddUserUser,

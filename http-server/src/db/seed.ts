@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm"
 import { hashPassword } from "../auth/password.js"
 import { closeDb, db } from "./client.js"
-import { authentications, organizations, roles, users } from "./schema.js"
+import { authentications, organizations, users } from "./schema.js"
 
 const seededAt = new Date("2026-01-01T00:00:00.000Z")
 const mikeEmail = "mikewhittom27@gmail.com"
@@ -19,24 +19,6 @@ try {
       updatedAt: seededAt
     })
     .onConflictDoNothing({ target: organizations.slug })
-
-  await db
-    .insert(roles)
-    .values([
-      {
-        name: "Admin",
-        code: "ADMIN",
-        createdAt: seededAt,
-        updatedAt: seededAt
-      },
-      {
-        name: "User",
-        code: "USER",
-        createdAt: seededAt,
-        updatedAt: seededAt
-      }
-    ])
-    .onConflictDoNothing({ target: roles.code })
 
   await db
     .insert(users)

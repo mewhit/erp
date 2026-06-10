@@ -6,9 +6,8 @@ import { getOrganizations, type Organization } from "../services/userData";
 
 const navItems = [
   { to: "/", label: "Dashboard" },
-  { to: "/orders", label: "Orders" },
-  { to: "/customers", label: "Customers" },
-  { to: "/support", label: "Support" }
+  { to: "/orders", label: "Work orders" },
+  { to: "/customers", label: "Customers" }
 ];
 
 export type PortalOutletContext = {
@@ -89,7 +88,7 @@ export function RootLayout() {
             ))}
           </select>
         </div>
-        <nav className="grid grid-cols-1 gap-2 sm:grid-cols-4 md:grid-cols-1" aria-label="Primary navigation">
+        <nav className="grid grid-cols-1 gap-2 sm:grid-cols-3 md:grid-cols-1" aria-label="Primary navigation">
           {navItems.map((item) => (
             <NavLink
               key={item.to}

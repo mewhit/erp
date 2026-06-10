@@ -12,6 +12,9 @@ export const OrganizationUserRoleService = {
   findById: (id: string): Promise<OrganizationUserRole | undefined> =>
     OrganizationUserRoleStorage.findById(id),
 
+  findByUserId: (userId: string): Promise<ReadonlyArray<OrganizationUserRole>> =>
+    OrganizationUserRoleStorage.findByUserId(userId),
+
   create: (
     input: CreateOrganizationUserRoleInput
   ): Promise<OrganizationUserRole> => OrganizationUserRoleStorage.create(input),

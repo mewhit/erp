@@ -3,7 +3,7 @@ import * as NodeHttpServer from "@effect/platform-node/NodeHttpServer"
 import * as NodeRuntime from "@effect/platform-node/NodeRuntime"
 import { Config, Layer } from "effect"
 import { createServer } from "node:http"
-import { authRoutes } from "./auth/index.js"
+import { authGuard, authPublicRoutes, authRoutes } from "./auth/index.js"
 import { customerWorkOrderRoutes } from "./customer-work-order/index.js"
 import { customerRoutes } from "./customer/index.js"
 import { itemRoutes } from "./item/index.js"
@@ -44,10 +44,13 @@ const routes = HttpRouter.empty.pipe(
   HttpRouter.mount("/organizations", organizationRoutes),
   HttpRouter.mount("/organization-user-roles", organizationUserRoleRoutes),
   HttpRouter.mount("/roles", roleRoutes),
+  HttpRouter.mount("/usecase", usecaseRoutes),
   HttpRouter.mount("/usecases", usecaseRoutes),
   HttpRouter.mount("/users", userRoutes),
   HttpRouter.mount("/work-order-items", workOrderItemRoutes),
-  HttpRouter.mount("/work-orders", workOrderRoutes)
+  HttpRouter.mount("/work-orders", workOrderRoutes),
+  HttpRouter.use(authGuard),
+  HttpRouter.mount("/auth", authPublicRoutes)
 )
 
 const ServerLive = NodeHttpServer.layerConfig(() => server, {

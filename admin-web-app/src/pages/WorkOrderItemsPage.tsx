@@ -137,7 +137,7 @@ export function WorkOrderItemsPage() {
       </header>
 
       <section className="mb-5 rounded-lg border border-slate-200 bg-white p-[18px] shadow-sm">
-        <form className="grid gap-4 lg:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_120px_140px]" onSubmit={onSubmit}>
+        <form className="grid gap-4 xl:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_120px_140px]" onSubmit={onSubmit}>
           <label className="grid gap-2 text-sm font-bold text-slate-600">
             Work order
             <select className="min-h-11 rounded-lg border border-slate-200 px-3 text-base font-normal text-slate-900 outline-none transition-colors focus:border-cyan-800" required value={workOrderId} onChange={(event) => setWorkOrderId(event.target.value)}>
@@ -174,12 +174,12 @@ export function WorkOrderItemsPage() {
             <input className="min-h-11 rounded-lg border border-slate-200 px-3 text-base font-normal text-slate-900 outline-none transition-colors focus:border-cyan-800" min="0" step="0.01" type="number" value={unitPrice} onChange={(event) => setUnitPrice(event.target.value)} />
           </label>
 
-          <label className="grid gap-2 text-sm font-bold text-slate-600 lg:col-span-4">
+          <label className="grid gap-2 text-sm font-bold text-slate-600 xl:col-span-4">
             Description
             <input className="min-h-11 rounded-lg border border-slate-200 px-3 text-base font-normal text-slate-900 outline-none transition-colors focus:border-cyan-800" value={description} onChange={(event) => setDescription(event.target.value)} />
           </label>
 
-          <div className="flex flex-wrap gap-2 self-end lg:col-span-4">
+          <div className="flex flex-wrap gap-2 self-end xl:col-span-4">
             <button className="min-h-11 rounded-lg bg-cyan-800 px-4 font-bold text-white transition-colors hover:bg-slate-900 disabled:cursor-not-allowed disabled:bg-slate-500" disabled={status === "submitting" || !isFormValid} type="submit">
               {status === "submitting" ? "Saving..." : editingWorkOrderItemId === undefined ? "Create work order item" : "Update work order item"}
             </button>

@@ -1,20 +1,6 @@
 import { Data, Effect, Schema } from "effect";
 import { getStoredSession } from "./auth";
 
-export type Organization = {
-  id: string;
-  name: string;
-  status: "active" | "pending" | "archived";
-  seats: number;
-};
-
-export type User = {
-  id: string;
-  name: string;
-  email: string;
-  role: "Owner" | "Admin" | "Member";
-};
-
 const RoleSchema = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
@@ -36,6 +22,25 @@ export type Role = typeof RoleSchema.Type;
 export type CreateRoleInput = {
   name: string;
   code: string;
+};
+
+const UserSchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+  email: Schema.String,
+  createdAt: Schema.String
+});
+
+const UsersResponseSchema = Schema.Struct({
+  data: Schema.Array(UserSchema)
+});
+
+export type User = typeof UserSchema.Type;
+
+export type CreateUserInput = {
+  name: string;
+  email: string;
+  password: string;
 };
 
 const ItemSchema = Schema.Struct({
@@ -102,18 +107,68 @@ export type UpdateCustomerInput = CreateCustomerInput & {
   isActive: boolean;
 };
 
-const OrganizationOptionSchema = Schema.Struct({
+const OrganizationSchema = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
   code: Schema.String,
   createdAt: Schema.String
 });
 
-const OrganizationOptionsResponseSchema = Schema.Struct({
-  data: Schema.Array(OrganizationOptionSchema)
+const OrganizationsResponseSchema = Schema.Struct({
+  data: Schema.Array(OrganizationSchema)
 });
 
-export type OrganizationOption = typeof OrganizationOptionSchema.Type;
+const OrganizationResponseSchema = Schema.Struct({
+  data: OrganizationSchema
+});
+
+export type Organization = typeof OrganizationSchema.Type;
+
+export type OrganizationOption = Organization;
+
+export type CreateOrganizationInput = {
+  name: string;
+  code: string;
+};
+
+const OrganizationUserRoleSchema = Schema.Struct({
+  id: Schema.String,
+  organizationId: Schema.String,
+  userId: Schema.String,
+  roleId: Schema.String,
+  createdAt: Schema.String
+});
+
+const OrganizationUserRolesResponseSchema = Schema.Struct({
+  data: Schema.Array(OrganizationUserRoleSchema)
+});
+
+const OrganizationUserRoleResponseSchema = Schema.Struct({
+  data: OrganizationUserRoleSchema
+});
+
+const AddUserResultSchema = Schema.Struct({
+  user: UserSchema,
+  organizationUserRole: OrganizationUserRoleSchema
+});
+
+const AddUserResponseSchema = Schema.Struct({
+  data: AddUserResultSchema
+});
+
+export type OrganizationUserRole = typeof OrganizationUserRoleSchema.Type;
+
+export type CreateOrganizationUserRoleInput = {
+  organizationId: string;
+  userId: string;
+  roleId: string;
+};
+
+export type AddUserToOrganizationInput = {
+  user: CreateUserInput;
+  organizationId: string;
+  roleId: string;
+};
 
 const OrganizationCustomerSchema = Schema.Struct({
   id: Schema.String,
@@ -232,22 +287,6 @@ class ApiError extends Data.TaggedError("ApiError")<{
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
-const organizations: Organization[] = [
-  { id: "org-001", name: "Northwind Logistics", status: "active", seats: 42 },
-  { id: "org-002", name: "Contoso Finance", status: "pending", seats: 18 },
-  { id: "org-003", name: "Fabrikam Supply", status: "active", seats: 67 }
-];
-
-const users: User[] = [
-  { id: "usr-001", name: "Maya Chen", email: "maya.chen@example.com", role: "Owner" },
-  { id: "usr-002", name: "Jordan Ellis", email: "jordan.ellis@example.com", role: "Admin" },
-  { id: "usr-003", name: "Samira Patel", email: "samira.patel@example.com", role: "Member" }
-];
-
-export const getOrganizations = Effect.succeed(organizations);
-
-export const getUsers = Effect.succeed(users);
-
 const getAuthHeaders = (): Record<string, string> => {
   const session = getStoredSession();
 
@@ -352,6 +391,12 @@ export const createRole = (input: CreateRoleInput) =>
     Effect.map((response) => response.data)
   );
 
+export const getUsers = () =>
+  requestJson("/users/").pipe(
+    Effect.flatMap(Schema.decodeUnknown(UsersResponseSchema)),
+    Effect.map((response) => response.data)
+  );
+
 export const getItems = () =>
   requestJson("/items/").pipe(
     Effect.flatMap(Schema.decodeUnknown(ItemsResponseSchema)),
@@ -422,9 +467,66 @@ export const deleteCustomer = (id: string) =>
     method: "DELETE"
   });
 
-export const getOrganizationOptions = () =>
+export const getOrganizations = () =>
   requestJson("/organizations/").pipe(
-    Effect.flatMap(Schema.decodeUnknown(OrganizationOptionsResponseSchema)),
+    Effect.flatMap(Schema.decodeUnknown(OrganizationsResponseSchema)),
+    Effect.map((response) => response.data)
+  );
+
+export const getOrganization = (id: string) =>
+  requestJson(`/organizations/${id}`).pipe(
+    Effect.flatMap(Schema.decodeUnknown(OrganizationResponseSchema)),
+    Effect.map((response) => response.data)
+  );
+
+export const createOrganization = (input: CreateOrganizationInput) =>
+  requestJson("/organizations/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  }).pipe(
+    Effect.flatMap(Schema.decodeUnknown(OrganizationResponseSchema)),
+    Effect.map((response) => response.data)
+  );
+
+export const getOrganizationOptions = getOrganizations;
+
+export const getOrganizationUserRoles = () =>
+  requestJson("/organization-user-roles/").pipe(
+    Effect.flatMap(Schema.decodeUnknown(OrganizationUserRolesResponseSchema)),
+    Effect.map((response) => response.data)
+  );
+
+export const createOrganizationUserRole = (
+  input: CreateOrganizationUserRoleInput
+) =>
+  requestJson("/organization-user-roles/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  }).pipe(
+    Effect.flatMap(Schema.decodeUnknown(OrganizationUserRoleResponseSchema)),
+    Effect.map((response) => response.data)
+  );
+
+export const deleteOrganizationUserRole = (id: string) =>
+  requestEmpty(`/organization-user-roles/${id}`, {
+    method: "DELETE"
+  });
+
+export const addUserToOrganization = (input: AddUserToOrganizationInput) =>
+  requestJson("/usecases/add-user", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  }).pipe(
+    Effect.flatMap(Schema.decodeUnknown(AddUserResponseSchema)),
     Effect.map((response) => response.data)
   );
 
@@ -582,12 +684,8 @@ export const deleteCustomerWorkOrder = (id: string) =>
   });
 
 export const getDashboardStats = Effect.all({
-  organizations: getOrganizations.pipe(Effect.map((items) => items.length)),
-  activeOrganizations: getOrganizations.pipe(
-    Effect.map((items) => items.filter((item) => item.status === "active").length)
-  ),
-  users: getUsers.pipe(Effect.map((items) => items.length)),
-  seats: getOrganizations.pipe(
-    Effect.map((items) => items.reduce((total, item) => total + item.seats, 0))
-  )
+  organizations: getOrganizations().pipe(Effect.map((items) => items.length)),
+  activeOrganizations: getOrganizations().pipe(Effect.map((items) => items.length)),
+  users: getUsers().pipe(Effect.map((items) => items.length)),
+  seats: Effect.succeed(0)
 });

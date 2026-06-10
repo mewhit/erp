@@ -109,7 +109,7 @@ export function CustomersPage() {
       </header>
 
       <section className="mb-5 rounded-lg border border-slate-200 bg-white p-[18px] shadow-sm">
-        <form className="grid gap-4 lg:grid-cols-[minmax(160px,1fr)_minmax(160px,1fr)_minmax(220px,1fr)_180px_auto]" onSubmit={onSubmit}>
+        <form className="grid gap-4 xl:grid-cols-[minmax(160px,1fr)_minmax(160px,1fr)_minmax(220px,1fr)_180px_auto]" onSubmit={onSubmit}>
           <label className="grid gap-2 text-sm font-bold text-slate-600">
             First name
             <input

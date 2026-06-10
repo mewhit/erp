@@ -3,6 +3,7 @@ import type { User } from "../user/user.model.js"
 
 export type AuthTokenPayload = {
   sub: string
+  userId: string
   email: string
   name: string
   exp: number
@@ -36,6 +37,7 @@ export const createAuthToken = (user: User): string => {
   })
   const payload = encode({
     sub: user.id,
+    userId: user.id,
     email: user.email,
     name: user.name,
     exp: Math.floor(Date.now() / 1000) + tokenTtlSeconds
@@ -60,8 +62,11 @@ export const verifyAuthToken = (token: string): AuthTokenPayload | undefined => 
       Buffer.from(payload, "base64url").toString("utf8")
     ) as Partial<AuthTokenPayload>
 
+    const userId = parsed.userId ?? parsed.sub
+
     if (
       typeof parsed.sub !== "string" ||
+      typeof userId !== "string" ||
       typeof parsed.email !== "string" ||
       typeof parsed.name !== "string" ||
       typeof parsed.exp !== "number" ||
@@ -70,7 +75,13 @@ export const verifyAuthToken = (token: string): AuthTokenPayload | undefined => 
       return undefined
     }
 
-    return parsed as AuthTokenPayload
+    return {
+      sub: parsed.sub,
+      userId,
+      email: parsed.email,
+      name: parsed.name,
+      exp: parsed.exp
+    }
   } catch {
     return undefined
   }

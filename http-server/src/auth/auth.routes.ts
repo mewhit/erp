@@ -4,6 +4,8 @@ import {
   HttpServerResponse
 } from "@effect/platform"
 import { Effect } from "effect"
+import { UserService } from "../user/user.service.js"
+import { AuthenticatedUserId } from "./auth.guard.js"
 import { LoginInput } from "./auth.model.js"
 import { AuthService } from "./auth.service.js"
 
@@ -17,21 +19,7 @@ const unauthorized = () =>
     }
   )
 
-const getBearerToken = (authorization: string | undefined): string | undefined => {
-  if (authorization === undefined) {
-    return undefined
-  }
-
-  const [scheme, token] = authorization.split(" ")
-
-  if (scheme?.toLowerCase() !== "bearer" || token === undefined) {
-    return undefined
-  }
-
-  return token
-}
-
-export const authRoutes = HttpRouter.empty.pipe(
+export const authPublicRoutes = HttpRouter.empty.pipe(
   HttpRouter.post(
     "/login",
     Effect.gen(function* () {
@@ -46,19 +34,15 @@ export const authRoutes = HttpRouter.empty.pipe(
         data: session
       })
     })
-  ),
+  )
+)
 
+export const authRoutes = HttpRouter.empty.pipe(
   HttpRouter.get(
     "/me",
     Effect.gen(function* () {
-      const request = yield* HttpServerRequest.HttpServerRequest
-      const token = getBearerToken(request.headers.authorization)
-
-      if (token === undefined) {
-        return yield* unauthorized()
-      }
-
-      const user = yield* Effect.promise(() => AuthService.findUserByToken(token))
+      const userId = yield* AuthenticatedUserId
+      const user = yield* Effect.promise(() => UserService.findById(userId))
 
       if (user === undefined) {
         return yield* unauthorized()

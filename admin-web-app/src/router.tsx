@@ -5,6 +5,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { ItemsPage } from "./pages/ItemsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { OrganizationCustomersPage } from "./pages/OrganizationCustomersPage";
+import { OrganizationDetailPage } from "./pages/OrganizationDetailPage";
 import { OrganizationsPage } from "./pages/OrganizationsPage";
 import { RolesPage } from "./pages/RolesPage";
 import { UsersPage } from "./pages/UsersPage";
@@ -57,6 +58,10 @@ export const router = createBrowserRouter([
       {
         path: "organizations",
         element: <OrganizationsPage />
+      },
+      {
+        path: "organizations/:organizationId",
+        element: <OrganizationDetailPage />
       },
       {
         path: "roles",

@@ -58,6 +58,10 @@ export const requestJson = ({
         })
     })
 
+    if (response.status === 204) {
+      return {}
+    }
+
     const responseBody = yield* Effect.tryPromise({
       try: () => response.json() as Promise<unknown>,
       catch: (error) =>
@@ -98,28 +102,56 @@ const createResourceClient = (path: string, options: ApiClientOptions) => ({
       path
     }),
 
+  getById: (id: string) =>
+    requestJson({
+      ...options,
+      path: `${path}${encodeURIComponent(id)}`
+    }),
+
   post: (body: unknown) =>
     requestJson({
       ...options,
       path,
       method: "POST",
       body
+    }),
+
+  put: (id: string, body: unknown) =>
+    requestJson({
+      ...options,
+      path: `${path}${encodeURIComponent(id)}`,
+      method: "PUT",
+      body
+    }),
+
+  del: (id: string) =>
+    requestJson({
+      ...options,
+      path: `${path}${encodeURIComponent(id)}`,
+      method: "DELETE"
     })
 })
 
 export const createApiClient = (options: ApiClientOptions = {}) => ({
   customer: createResourceClient("/customers/", options),
   customerWorkOrder: createResourceClient("/customer-work-orders/", options),
+  item: createResourceClient("/items/", options),
+  organization: createResourceClient("/organizations/", options),
   organizationCustomer: createResourceClient(
     "/organization-customers/",
     options
   ),
   user: createResourceClient("/users/", options),
-  organizationUserRole: createResourceClient(
-    "/organization-user-roles/",
-    options
-  ),
-  workOrder: createResourceClient("/work-orders/", options)
+  organizationUserRole: {
+    ...createResourceClient("/organization-user-roles/", options),
+    byUserId: (userId: string) =>
+      requestJson({
+        ...options,
+        path: `/organization-user-roles/by-user/${encodeURIComponent(userId)}`
+      })
+  },
+  workOrder: createResourceClient("/work-orders/", options),
+  workOrderItem: createResourceClient("/work-order-items/", options)
 })
 
 export const apiClient = createApiClient()

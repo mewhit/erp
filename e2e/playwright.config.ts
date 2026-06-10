@@ -26,7 +26,7 @@ export default defineConfig({
           timeout: 120_000,
           env: {
             PORT: "3020",
-            DATABASE_URL: "postgres://postgres:postgres@localhost:5432/organization_assistant_db"
+            DATABASE_URL: "postgres://postgres:postgres@localhost:5432/erp"
           }
         },
         {

@@ -2,7 +2,7 @@ import { useEffectQuery } from "../hooks";
 import { getUsers } from "../services/adminData";
 
 export function UsersPage() {
-  const users = useEffectQuery(getUsers);
+  const users = useEffectQuery(getUsers());
 
   return (
     <>
@@ -18,7 +18,7 @@ export function UsersPage() {
               <tr>
                 <TableHeader>Name</TableHeader>
                 <TableHeader>Email</TableHeader>
-                <TableHeader>Role</TableHeader>
+                <TableHeader>Created</TableHeader>
               </tr>
             </thead>
             <tbody>
@@ -26,7 +26,7 @@ export function UsersPage() {
                 <tr key={user.id}>
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
+                  <TableCell>{formatDate(user.createdAt)}</TableCell>
                 </tr>
               ))}
             </tbody>
@@ -47,4 +47,10 @@ function TableHeader({ children }: { children: React.ReactNode }) {
 
 function TableCell({ children }: { children: React.ReactNode }) {
   return <td className="border-b border-slate-100 px-[18px] py-3.5 text-left">{children}</td>;
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium"
+  }).format(new Date(value));
 }

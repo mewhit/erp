@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+@layer base {
+  form label,
+  form fieldset,
+  form > div {
+    min-width: 0;
+  }
+
+  form input,
+  form select,
+  form textarea {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  form input[type="checkbox"],
+  form input[type="radio"] {
+    display: inline-block;
+    width: auto;
+    min-width: auto;
+  }
+}

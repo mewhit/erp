@@ -14,11 +14,9 @@ export function DashboardPage() {
 
   return (
     <PageFrame title="Dashboard">
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-label="Dashboard metrics">
-        <Metric label="Orders" value={stats.data.orders} />
-        <Metric label="Active orders" value={stats.data.activeOrders} />
-        <Metric label="Tickets" value={stats.data.tickets} />
-        <Metric label="Open tickets" value={stats.data.openTickets} />
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2" aria-label="Dashboard metrics">
+        <Metric label="Work orders" value={stats.data.orders} />
+        <Metric label="Active work orders" value={stats.data.activeOrders} />
       </section>
     </PageFrame>
   );

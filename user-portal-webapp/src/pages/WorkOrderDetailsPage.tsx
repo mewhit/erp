@@ -2,8 +2,15 @@ import { Effect } from "effect";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { useEffectQuery } from "../hooks";
-import { addWorkOrderItem, getWorkOrderDetails } from "../services/userData";
+import {
+  addWorkOrderItem,
+  getWorkOrderDetails,
+  setWorkOrderItemQuantity,
+  setWorkOrderStatus
+} from "../services/userData";
 import type { PortalOutletContext } from "../ui/RootLayout";
+
+const workOrderStatuses = ["open", "in_progress", "completed", "cancelled"];
 
 export function WorkOrderDetailsPage() {
   const { workOrderId = "" } = useParams();
@@ -11,6 +18,13 @@ export function WorkOrderDetailsPage() {
   const [itemId, setItemId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [workOrderStatusValue, setWorkOrderStatusValue] = useState("open");
+  const [workOrderStatusUpdateStatus, setWorkOrderStatusUpdateStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
+  const [quantityStatus, setQuantityStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [updatingWorkOrderItemId, setUpdatingWorkOrderItemId] = useState<string | undefined>();
+  const [quantityEdits, setQuantityEdits] = useState<Record<string, string>>({});
   const [reloadKey, setReloadKey] = useState(0);
   const detailsProgram = useMemo(
     () => getWorkOrderDetails(workOrderId, selectedOrganizationId),
@@ -28,6 +42,8 @@ export function WorkOrderDetailsPage() {
       return;
     }
 
+    setWorkOrderStatusValue(details.data.workOrder.status);
+
     setItemId((currentItemId) => {
       if (details.data.items.length === 0) {
         return "";
@@ -36,6 +52,17 @@ export function WorkOrderDetailsPage() {
       return details.data.items.some((item) => item.id === currentItemId)
         ? currentItemId
         : details.data.items[0].id;
+    });
+
+    setQuantityEdits((currentQuantityEdits) => {
+      const nextQuantityEdits: Record<string, string> = {};
+
+      for (const workOrderItem of details.data.workOrderItems) {
+        nextQuantityEdits[workOrderItem.id] =
+          currentQuantityEdits[workOrderItem.id] ?? String(workOrderItem.quantity);
+      }
+
+      return nextQuantityEdits;
     });
   }, [details]);
 
@@ -68,6 +95,56 @@ export function WorkOrderDetailsPage() {
     );
   };
 
+  const onSetWorkOrderStatus = (nextStatus: string) => {
+    setWorkOrderStatusValue(nextStatus);
+    setWorkOrderStatusUpdateStatus("submitting");
+
+    void Effect.runPromise(
+      setWorkOrderStatus({
+        workOrderId,
+        status: nextStatus
+      })
+    ).then(
+      () => {
+        setReloadKey((current) => current + 1);
+        setWorkOrderStatusUpdateStatus("success");
+      },
+      () => {
+        setWorkOrderStatusValue(workOrder.status);
+        setWorkOrderStatusUpdateStatus("error");
+      }
+    );
+  };
+
+  const onSetItemQuantity = (workOrderItemId: string) => {
+    const nextQuantity = Number(quantityEdits[workOrderItemId] ?? "");
+
+    if (!Number.isFinite(nextQuantity) || nextQuantity < 0) {
+      return;
+    }
+
+    setQuantityStatus("submitting");
+    setUpdatingWorkOrderItemId(workOrderItemId);
+
+    void Effect.runPromise(
+      setWorkOrderItemQuantity({
+        workOrderId,
+        workOrderItemId,
+        quantity: Math.trunc(nextQuantity)
+      })
+    ).then(
+      () => {
+        setReloadKey((current) => current + 1);
+        setQuantityStatus("success");
+        setUpdatingWorkOrderItemId(undefined);
+      },
+      () => {
+        setQuantityStatus("error");
+        setUpdatingWorkOrderItemId(undefined);
+      }
+    );
+  };
+
   if (details.status === "loading") {
     return <PageFrame title="Work order">Loading...</PageFrame>;
   }
@@ -77,10 +154,6 @@ export function WorkOrderDetailsPage() {
   }
 
   const { customer, items, workOrder, workOrderItems } = details.data;
-  const totalCents = workOrderItems.reduce(
-    (total, item) => total + item.quantity * item.unitPriceCents,
-    0
-  );
 
   return (
     <>
@@ -95,6 +168,22 @@ export function WorkOrderDetailsPage() {
         <p className="m-0 mt-2 text-sm text-slate-500">
           {workOrder.title} - {workOrder.status}
         </p>
+        <div className="mt-4 flex max-w-xs flex-col gap-2 text-sm font-bold text-slate-600">
+          <label htmlFor="work-order-status">Status</label>
+          <select
+            className="min-h-10 rounded-lg border border-slate-200 px-3 text-base font-normal text-slate-900 outline-none transition-colors focus:border-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-100"
+            disabled={workOrderStatusUpdateStatus === "submitting"}
+            id="work-order-status"
+            value={workOrderStatusValue}
+            onChange={(event) => onSetWorkOrderStatus(event.target.value)}
+          >
+            {workOrderStatuses.map((item) => (
+              <option key={item} value={item}>
+                {formatStatus(item)}
+              </option>
+            ))}
+          </select>
+        </div>
       </header>
 
       <section className="rounded-lg border border-slate-200 bg-white p-[18px] shadow-sm">
@@ -149,6 +238,30 @@ export function WorkOrderDetailsPage() {
             Unable to add item.
           </p>
         )}
+
+        {workOrderStatusUpdateStatus === "success" && (
+          <p className="mt-4 mb-0 rounded-lg bg-emerald-100 px-3 py-2 text-sm font-bold text-emerald-800">
+            Status updated.
+          </p>
+        )}
+
+        {workOrderStatusUpdateStatus === "error" && (
+          <p className="mt-4 mb-0 rounded-lg bg-amber-100 px-3 py-2 text-sm font-bold text-amber-800">
+            Unable to update status.
+          </p>
+        )}
+
+        {quantityStatus === "success" && (
+          <p className="mt-4 mb-0 rounded-lg bg-emerald-100 px-3 py-2 text-sm font-bold text-emerald-800">
+            Quantity updated.
+          </p>
+        )}
+
+        {quantityStatus === "error" && (
+          <p className="mt-4 mb-0 rounded-lg bg-amber-100 px-3 py-2 text-sm font-bold text-amber-800">
+            Unable to update quantity.
+          </p>
+        )}
       </section>
 
       <section className="mt-5 overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -160,29 +273,49 @@ export function WorkOrderDetailsPage() {
                 <TableHeader>Item</TableHeader>
                 <TableHeader>SKU</TableHeader>
                 <TableHeader>Quantity</TableHeader>
-                <TableHeader>Unit price</TableHeader>
-                <TableHeader>Total</TableHeader>
+                <TableHeader>Actions</TableHeader>
               </tr>
             </thead>
             <tbody>
-              {workOrderItems.map((workOrderItem) => (
-                <tr key={workOrderItem.id}>
-                  <TableCell>{workOrderItem.item?.name ?? workOrderItem.description}</TableCell>
-                  <TableCell>{workOrderItem.item?.sku ?? "-"}</TableCell>
-                  <TableCell>{workOrderItem.quantity}</TableCell>
-                  <TableCell>{formatMoney(workOrderItem.unitPriceCents)}</TableCell>
-                  <TableCell>{formatMoney(workOrderItem.quantity * workOrderItem.unitPriceCents)}</TableCell>
-                </tr>
-              ))}
+              {workOrderItems.map((workOrderItem) => {
+                const isUpdating =
+                  quantityStatus === "submitting" && updatingWorkOrderItemId === workOrderItem.id;
+                const editedQuantity = quantityEdits[workOrderItem.id] ?? String(workOrderItem.quantity);
+
+                return (
+                  <tr key={workOrderItem.id}>
+                    <TableCell>{workOrderItem.item?.name ?? workOrderItem.description}</TableCell>
+                    <TableCell>{workOrderItem.item?.sku ?? "-"}</TableCell>
+                    <TableCell>
+                      <input
+                        className="h-9 w-24 rounded-lg border border-slate-200 px-3 text-sm text-slate-900 outline-none transition-colors focus:border-cyan-800"
+                        min={0}
+                        type="number"
+                        value={editedQuantity}
+                        onChange={(event) =>
+                          setQuantityEdits((currentQuantityEdits) => ({
+                            ...currentQuantityEdits,
+                            [workOrderItem.id]: event.target.value
+                          }))
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          className="min-h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
+                          disabled={quantityStatus === "submitting"}
+                          type="button"
+                          onClick={() => onSetItemQuantity(workOrderItem.id)}
+                        >
+                          {isUpdating ? "Saving..." : "Save"}
+                        </button>
+                      </div>
+                    </TableCell>
+                  </tr>
+                );
+              })}
             </tbody>
-            <tfoot>
-              <tr>
-                <td className="px-[18px] py-3.5 text-right font-bold" colSpan={4}>
-                  Total
-                </td>
-                <td className="px-[18px] py-3.5 font-bold">{formatMoney(totalCents)}</td>
-              </tr>
-            </tfoot>
           </table>
         )}
       </section>
@@ -213,9 +346,6 @@ function TableCell({ children }: { children: React.ReactNode }) {
   return <td className="border-b border-slate-100 px-[18px] py-3.5 text-left">{children}</td>;
 }
 
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    currency: "USD",
-    style: "currency"
-  }).format(value / 100);
+function formatStatus(value: string) {
+  return value.replaceAll("_", " ");
 }

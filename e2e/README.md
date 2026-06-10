@@ -14,7 +14,7 @@ The test script starts the API on `3000`, admin app on `5180`, and user portal o
 Postgres must be available at:
 
 ```text
-postgres://postgres:postgres@localhost:5432/organization_assistant_db
+postgres://postgres:postgres@localhost:5432/erp
 ```
 
 The repo's `docker-compose.yml` provides that database.

@@ -1,10 +1,9 @@
-import { createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter } from "react-router-dom";
 import { CustomerDetailsPage } from "./pages/CustomerDetailsPage";
 import { CustomersPage } from "./pages/CustomersPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
 import { OrdersPage } from "./pages/OrdersPage";
-import { SupportPage } from "./pages/SupportPage";
 import { WorkOrderDetailsPage } from "./pages/WorkOrderDetailsPage";
 import { RequireAuth } from "./ui/RequireAuth";
 import { RootLayout } from "./ui/RootLayout";
@@ -47,9 +46,13 @@ export const router = createBrowserRouter([
         element: <CustomersPage />
       },
       {
-        path: "support",
-        element: <SupportPage />
+        path: "*",
+        element: <Navigate to="/" replace />
       }
     ]
+  },
+  {
+    path: "*",
+    element: <Navigate to="/" replace />
   }
 ]);

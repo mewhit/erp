@@ -114,7 +114,7 @@ export function ItemsPage() {
       </header>
 
       <section className="mb-5 rounded-lg border border-slate-200 bg-white p-[18px] shadow-sm">
-        <form className="grid gap-4 lg:grid-cols-[minmax(180px,1fr)_160px_130px_110px_auto]" onSubmit={onSubmit}>
+        <form className="grid gap-4 xl:grid-cols-[minmax(180px,1fr)_160px_130px_110px_auto]" onSubmit={onSubmit}>
           <label className="grid gap-2 text-sm font-bold text-slate-600">
             Name
             <input
@@ -169,7 +169,7 @@ export function ItemsPage() {
             Active
           </label>
 
-          <label className="grid gap-2 text-sm font-bold text-slate-600 lg:col-span-4">
+          <label className="grid gap-2 text-sm font-bold text-slate-600 xl:col-span-4">
             Description
             <input
               className="min-h-11 rounded-lg border border-slate-200 px-3 text-base font-normal text-slate-900 outline-none transition-colors focus:border-cyan-800"

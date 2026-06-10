@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/main.ts",
+    "dev": "node --watch --import tsx src/main.ts",
     "start": "tsx src/main.ts",
     "build": "tsc --noEmit",
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
@@ -19,7 +19,7 @@
     "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
+    "@types/node": "^24.13.1",
     "drizzle-kit": "^0.31.8",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
