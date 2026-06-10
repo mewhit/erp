@@ -11,11 +11,17 @@ const toCustomer = (customer: typeof customers.$inferSelect): Customer => ({
   id: customer.id,
   firstName: customer.firstName,
   lastName: customer.lastName,
-  email: customer.email,
+  email: customer.email ?? "",
   phone: customer.phone ?? "",
   isActive: customer.isActive,
   createdAt: customer.createdAt.toISOString()
 })
+
+const optionalContactValue = (value: string): string | null => {
+  const trimmed = value.trim()
+
+  return trimmed === "" ? null : trimmed
+}
 
 export const CustomerStorage = {
   findAll: async (): Promise<ReadonlyArray<Customer>> => {
@@ -44,8 +50,8 @@ export const CustomerStorage = {
       .values({
         firstName: input.firstName,
         lastName: input.lastName,
-        email: input.email,
-        phone: input.phone
+        email: optionalContactValue(input.email),
+        phone: optionalContactValue(input.phone)
       })
       .returning()
 
@@ -61,8 +67,8 @@ export const CustomerStorage = {
       .set({
         firstName: input.firstName,
         lastName: input.lastName,
-        email: input.email,
-        phone: input.phone,
+        email: optionalContactValue(input.email),
+        phone: optionalContactValue(input.phone),
         isActive: input.isActive,
         updatedAt: new Date()
       })

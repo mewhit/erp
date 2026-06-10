@@ -97,7 +97,7 @@ export const customers = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     firstName: varchar("first_name", { length: 255 }).notNull(),
     lastName: varchar("last_name", { length: 255 }).notNull(),
-    email: varchar("email", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }),
     phone: varchar("phone", { length: 255 }),
     isActive: boolean("is_active").default(true).notNull(),
     deletedAt: timestamp("deleted_at"),

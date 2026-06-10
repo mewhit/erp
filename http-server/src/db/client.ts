@@ -4,7 +4,7 @@ import * as schema from "./schema.js"
 
 const connectionString =
   process.env.DATABASE_URL ??
-  "postgres://postgres:postgres@localhost:5432/organization_assistant_db"
+  "postgres://postgres:postgres@127.0.0.1:5432/organization_assistant_db"
 
 const client = postgres(connectionString, {
   max: Number(process.env.DATABASE_POOL_SIZE ?? 10)

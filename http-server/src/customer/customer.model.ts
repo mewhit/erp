@@ -15,8 +15,8 @@ export type Customer = typeof Customer.Type
 export const CreateCustomerInput = Schema.Struct({
   firstName: Schema.String,
   lastName: Schema.String,
-  email: Schema.String,
-  phone: Schema.String
+  email: Schema.optionalWith(Schema.String, { default: () => "" }),
+  phone: Schema.optionalWith(Schema.String, { default: () => "" })
 })
 
 export type CreateCustomerInput = typeof CreateCustomerInput.Type
@@ -24,8 +24,8 @@ export type CreateCustomerInput = typeof CreateCustomerInput.Type
 export const UpdateCustomerInput = Schema.Struct({
   firstName: Schema.String,
   lastName: Schema.String,
-  email: Schema.String,
-  phone: Schema.String,
+  email: Schema.optionalWith(Schema.String, { default: () => "" }),
+  phone: Schema.optionalWith(Schema.String, { default: () => "" }),
   isActive: Schema.Boolean
 })
 

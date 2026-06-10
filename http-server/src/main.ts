@@ -1,5 +1,6 @@
 import { HttpMiddleware, HttpRouter, HttpServer, HttpServerResponse } from "@effect/platform"
-import { NodeHttpServer, NodeRuntime } from "@effect/platform-node"
+import * as NodeHttpServer from "@effect/platform-node/NodeHttpServer"
+import * as NodeRuntime from "@effect/platform-node/NodeRuntime"
 import { Config, Layer } from "effect"
 import { createServer } from "node:http"
 import { authRoutes } from "./auth/index.js"
@@ -14,6 +15,19 @@ import { usecaseRoutes } from "./usecase/index.js"
 import { userRoutes } from "./user/index.js"
 import { workOrderItemRoutes } from "./work-order-item/index.js"
 import { workOrderRoutes } from "./work-order/index.js"
+
+const server = createServer()
+
+server.once("listening", () => {
+  const address = server.address()
+  const port =
+    typeof address === "object" && address !== null
+      ? address.port
+      : process.env.PORT ?? "3000"
+
+  console.log(`API server listening on http://127.0.0.1:${port}`)
+  console.log(`Health check: http://127.0.0.1:${port}/health-check`)
+})
 
 const routes = HttpRouter.empty.pipe(
   HttpRouter.get(
@@ -36,7 +50,7 @@ const routes = HttpRouter.empty.pipe(
   HttpRouter.mount("/work-orders", workOrderRoutes)
 )
 
-const ServerLive = NodeHttpServer.layerConfig(() => createServer(), {
+const ServerLive = NodeHttpServer.layerConfig(() => server, {
   port: Config.integer("PORT").pipe(Config.withDefault(3000))
 })
 

@@ -4,9 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/main.ts",
+    "dev": "tsx src/main.ts",
     "start": "tsx src/main.ts",
-    "build": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
     "@effect/platform": "^0.96.1",
@@ -17,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "drizzle-kit": "^0.31.8",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }

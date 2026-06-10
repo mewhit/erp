@@ -1,5 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS users (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   email varchar(255) NOT NULL UNIQUE,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at timestamp NOT NULL DEFAULT now(),
   created_at timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS authentications (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS authentications (
   updated_at timestamp NOT NULL DEFAULT now(),
   created_at timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS organizations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name varchar(255) NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS organizations (
   updated_at timestamp NOT NULL DEFAULT now(),
   created_at timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS roles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name varchar(255) NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS roles (
   updated_at timestamp NOT NULL DEFAULT now(),
   created_at timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name varchar(255) NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS items (
   updated_at timestamp NOT NULL DEFAULT now(),
   created_at timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS customers (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   first_name varchar(255) NOT NULL,
@@ -71,10 +71,11 @@ CREATE TABLE IF NOT EXISTS customers (
   updated_at timestamp NOT NULL DEFAULT now(),
   created_at timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS first_name varchar(255) NOT NULL DEFAULT '';
+--> statement-breakpoint
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_name varchar(255) NOT NULL DEFAULT '';
-
+--> statement-breakpoint
 DO $$
 BEGIN
   IF EXISTS (
@@ -87,7 +88,11 @@ BEGIN
     ALTER TABLE customers ALTER COLUMN name DROP NOT NULL;
   END IF;
 END $$;
-
+--> statement-breakpoint
+ALTER TABLE customers ALTER COLUMN first_name DROP DEFAULT;
+--> statement-breakpoint
+ALTER TABLE customers ALTER COLUMN last_name DROP DEFAULT;
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS organization_customers (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
@@ -96,10 +101,11 @@ CREATE TABLE IF NOT EXISTS organization_customers (
   created_at timestamp NOT NULL DEFAULT now(),
   CONSTRAINT organization_customers_org_id_customer_id_unique UNIQUE (organization_id, customer_id)
 );
-
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS organization_customers_organization_id_index ON organization_customers(organization_id);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS organization_customers_customer_id_index ON organization_customers(customer_id);
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS work_orders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
@@ -112,10 +118,11 @@ CREATE TABLE IF NOT EXISTS work_orders (
   updated_at timestamp NOT NULL DEFAULT now(),
   created_at timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS work_orders_organization_id_index ON work_orders(organization_id);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS work_orders_customer_id_index ON work_orders(customer_id);
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS work_order_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   work_order_id uuid NOT NULL REFERENCES work_orders(id) ON DELETE CASCADE,
@@ -127,10 +134,11 @@ CREATE TABLE IF NOT EXISTS work_order_items (
   updated_at timestamp NOT NULL DEFAULT now(),
   created_at timestamp NOT NULL DEFAULT now()
 );
-
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS work_order_items_work_order_id_index ON work_order_items(work_order_id);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS work_order_items_item_id_index ON work_order_items(item_id);
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS customer_work_orders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_id uuid NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
@@ -139,10 +147,11 @@ CREATE TABLE IF NOT EXISTS customer_work_orders (
   created_at timestamp NOT NULL DEFAULT now(),
   CONSTRAINT customer_work_orders_customer_id_work_order_id_unique UNIQUE (customer_id, work_order_id)
 );
-
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS customer_work_orders_customer_id_index ON customer_work_orders(customer_id);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS customer_work_orders_work_order_id_index ON customer_work_orders(work_order_id);
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS organization_user_roles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
@@ -152,35 +161,9 @@ CREATE TABLE IF NOT EXISTS organization_user_roles (
   created_at timestamp NOT NULL DEFAULT now(),
   CONSTRAINT organization_user_roles_org_id_user_id_role_id_unique UNIQUE (organization_id, user_id, role_id)
 );
-
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS organization_user_roles_organization_id_index ON organization_user_roles(organization_id);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS organization_user_roles_user_id_index ON organization_user_roles(user_id);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS organization_user_roles_role_id_index ON organization_user_roles(role_id);
-
-INSERT INTO organizations (name, slug, created_at, updated_at)
-VALUES
-  ('Mewhit', 'MEWHIT', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')
-ON CONFLICT (slug) DO NOTHING;
-
-INSERT INTO roles (name, code, created_at, updated_at)
-VALUES
-  ('Admin', 'ADMIN', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'),
-  ('User', 'USER', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')
-ON CONFLICT (code) DO NOTHING;
-
-INSERT INTO users (display_name, email, created_at, updated_at)
-VALUES
-  ('Mike', 'mikewhittom27@gmail.com', '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z')
-ON CONFLICT (email) DO NOTHING;
-
-INSERT INTO authentications (user_id, password_hash, created_at, updated_at)
-SELECT
-  id,
-  'pbkdf2_sha256$310000$zp2jzRjb_UPSvW95T6YYmA$WbVRlXlMxBSkW7yjODOTc1yddxkwM3nUevdOX1cDvqY',
-  '2026-01-01T00:00:00.000Z',
-  '2026-01-01T00:00:00.000Z'
-FROM users
-WHERE email = 'mikewhittom27@gmail.com'
-ON CONFLICT (user_id) DO UPDATE
-SET password_hash = EXCLUDED.password_hash,
-    updated_at = EXCLUDED.updated_at;
