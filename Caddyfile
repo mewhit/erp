@@ -10,7 +10,7 @@
 		respond "{\"status\":\"ok\"}" 200
 	}
 
-	@admin host admin.mewhit.com
+	@admin host erp-admin.mewhit.com
 	handle @admin {
 		root * /srv/admin
 		try_files {path} /index.html

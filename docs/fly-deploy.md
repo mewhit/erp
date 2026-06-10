@@ -2,7 +2,7 @@
 
 This repo deploys as one Fly app with host-based routing:
 
-- `admin.mewhit.com` serves `admin-web-app`
+- `erp-admin.mewhit.com` serves `admin-web-app`
 - `erp.mewhit.com` serves `user-portal-webapp`
 - `erp-api.mewhit.com` proxies to `http-server`
 
@@ -10,7 +10,7 @@ This repo deploys as one Fly app with host-based routing:
 
 ```powershell
 flyctl auth login
-flyctl apps create mewhit-erp
+flyctl apps create erp-vbwyww
 flyctl secrets set DATABASE_URL="postgres://..." AUTH_TOKEN_SECRET="change-this"
 flyctl deploy
 ```
@@ -18,9 +18,9 @@ flyctl deploy
 ## Domains
 
 ```powershell
-flyctl certs add admin.mewhit.com -a mewhit-erp
-flyctl certs add erp.mewhit.com -a mewhit-erp
-flyctl certs add erp-api.mewhit.com -a mewhit-erp
+flyctl certs add erp-admin.mewhit.com -a erp-vbwyww
+flyctl certs add erp.mewhit.com -a erp-vbwyww
+flyctl certs add erp-api.mewhit.com -a erp-vbwyww
 ```
 
 After adding the certs, create the DNS records requested by `flyctl certs show`.
