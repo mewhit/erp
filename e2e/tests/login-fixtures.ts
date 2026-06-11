@@ -3,8 +3,8 @@ import { getRequiredEnv } from "../env";
 
 export const apiBaseUrl = getRequiredEnv("API_BASE_URL");
 export const testPassword = "Playwright-login-2026!";
-const setupEmail = process.env.E2E_SETUP_EMAIL ?? "mikewhittom27@gmail.com";
-const setupPassword = process.env.E2E_SETUP_PASSWORD ?? "password123";
+export const setupEmail = process.env.E2E_SETUP_EMAIL ?? "mikewhittom27@gmail.com";
+export const setupPassword = process.env.E2E_SETUP_PASSWORD ?? "password123";
 
 type ApiRequestOptions = {
   data?: unknown;
@@ -121,7 +121,7 @@ async function getApiAuthHeaders(request: APIRequestContext): Promise<Record<str
   };
 }
 
-async function withApiAuth(
+export async function withApiAuth(
   request: APIRequestContext,
   options: ApiRequestOptions = {}
 ): Promise<ApiRequestOptions & { headers: Record<string, string> }> {

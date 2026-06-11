@@ -82,6 +82,13 @@ export default defineConfig({
       testMatch: /user-add-user\.spec\.ts/
     },
     {
+      name: "user-portal-backend-calls",
+      use: {
+        baseURL: userBaseUrl
+      },
+      testMatch: /user-portal-backend-calls\.spec\.ts/
+    },
+    {
       name: "customer-work-order-item",
       use: {
         baseURL: adminBaseUrl
