@@ -11,8 +11,7 @@ export type User = typeof User.Type
 
 export const CreateUserInput = Schema.Struct({
   name: Schema.String,
-  email: Schema.String,
-  password: Schema.String
+  email: Schema.String
 })
 
 export type CreateUserInput = typeof CreateUserInput.Type

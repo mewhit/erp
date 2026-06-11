@@ -13,6 +13,7 @@ export function LoginPage() {
   const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
 
   if (getStoredSession() !== undefined) {
@@ -55,17 +56,31 @@ export function LoginPage() {
             />
           </label>
 
-          <label className="grid gap-2 text-sm font-bold text-slate-600">
-            Password
-            <input
-              className="min-h-11 rounded-lg border border-slate-200 px-3 text-base font-normal text-slate-900 outline-none transition-colors focus:border-cyan-800"
-              autoComplete="current-password"
-              required
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </label>
+          <div className="grid gap-2">
+            <label className="text-sm font-bold text-slate-600" htmlFor="portal-login-password">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                className="min-h-11 rounded-lg border border-slate-200 px-3 pr-16 text-base font-normal text-slate-900 outline-none transition-colors focus:border-cyan-800"
+                id="portal-login-password"
+                autoComplete="current-password"
+                required
+                type={isPasswordVisible ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+              <button
+                aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                aria-pressed={isPasswordVisible}
+                className="absolute right-2 top-1/2 min-h-8 -translate-y-1/2 rounded-md px-2 text-xs font-bold text-cyan-800 transition-colors hover:bg-cyan-50 focus:outline-none focus:ring-2 focus:ring-cyan-800"
+                type="button"
+                onClick={() => setIsPasswordVisible((isVisible) => !isVisible)}
+              >
+                {isPasswordVisible ? "Hide" : "Show"}
+              </button>
+            </div>
+          </div>
 
           {status === "error" && (
             <p className="m-0 rounded-lg bg-amber-100 px-3 py-2 text-sm font-bold text-amber-800">

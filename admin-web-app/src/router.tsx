@@ -8,6 +8,7 @@ import { OrganizationCustomersPage } from "./pages/OrganizationCustomersPage";
 import { OrganizationDetailPage } from "./pages/OrganizationDetailPage";
 import { OrganizationsPage } from "./pages/OrganizationsPage";
 import { RolesPage } from "./pages/RolesPage";
+import { UserDetailPage } from "./pages/UserDetailPage";
 import { UsersPage } from "./pages/UsersPage";
 import { WorkOrderItemsPage } from "./pages/WorkOrderItemsPage";
 import { WorkOrdersPage } from "./pages/WorkOrdersPage";
@@ -70,6 +71,10 @@ export const router = createBrowserRouter([
       {
         path: "users",
         element: <UsersPage />
+      },
+      {
+        path: "users/:userId",
+        element: <UserDetailPage />
       }
     ]
   }

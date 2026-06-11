@@ -1,11 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
-import type { User } from "../user/user.model.js"
 
 export type AuthTokenPayload = {
   sub: string
   userId: string
-  email: string
-  name: string
   exp: number
 }
 
@@ -30,16 +27,14 @@ const safeEqual = (left: string, right: string): boolean => {
   )
 }
 
-export const createAuthToken = (user: User): string => {
+export const createAuthToken = (userId: string): string => {
   const header = encode({
     alg: "HS256",
     typ: "JWT"
   })
   const payload = encode({
-    sub: user.id,
-    userId: user.id,
-    email: user.email,
-    name: user.name,
+    sub: userId,
+    userId,
     exp: Math.floor(Date.now() / 1000) + tokenTtlSeconds
   } satisfies AuthTokenPayload)
 
@@ -67,8 +62,6 @@ export const verifyAuthToken = (token: string): AuthTokenPayload | undefined => 
     if (
       typeof parsed.sub !== "string" ||
       typeof userId !== "string" ||
-      typeof parsed.email !== "string" ||
-      typeof parsed.name !== "string" ||
       typeof parsed.exp !== "number" ||
       parsed.exp <= Math.floor(Date.now() / 1000)
     ) {
@@ -78,8 +71,6 @@ export const verifyAuthToken = (token: string): AuthTokenPayload | undefined => 
     return {
       sub: parsed.sub,
       userId,
-      email: parsed.email,
-      name: parsed.name,
       exp: parsed.exp
     }
   } catch {

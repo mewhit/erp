@@ -5,6 +5,7 @@ import { Item } from "../item/item.model.js"
 import { Organization } from "../organization/organization.model.js"
 import { OrganizationCustomer } from "../organization-customer/organization-customer.model.js"
 import { createApiClient } from "../shared/api-client/index.js"
+import { User } from "../user/user.model.js"
 import { WorkOrderItem } from "../work-order-item/work-order-item.model.js"
 import { WorkOrder } from "../work-order/work-order.model.js"
 import {
@@ -23,7 +24,9 @@ import {
   AddWorkOrderToCustomerResult,
   type AddWorkOrderToCustomerInput,
   type AddUserInput,
-  type AddUserResult
+  type AddUserResult,
+  type AddUserUserInput,
+  type UpdateUserPasswordInput
 } from "./usecase.model.js"
 
 class UseCaseError extends Data.TaggedError("UseCaseError")<{
@@ -33,6 +36,9 @@ class UseCaseError extends Data.TaggedError("UseCaseError")<{
     | "create-work-order"
     | "assign-customer-work-order"
     | "create-user"
+    | "fetch-user"
+    | "create-auth"
+    | "update-auth"
     | "assign-organization-role"
     | "fetch-organization-user-roles"
     | "fetch-organization"
@@ -52,7 +58,13 @@ class UseCaseError extends Data.TaggedError("UseCaseError")<{
 }> {}
 
 const UserResponse = Schema.Struct({
-  data: AddUserUser
+  data: User
+})
+
+const AuthUserPasswordResponse = Schema.Struct({
+  data: Schema.Struct({
+    userId: Schema.String
+  })
 })
 
 const OrganizationUserRoleResponse = Schema.Struct({
@@ -123,6 +135,9 @@ const mapApiClientError = (
     | "create-work-order"
     | "assign-customer-work-order"
     | "create-user"
+    | "fetch-user"
+    | "create-auth"
+    | "update-auth"
     | "assign-organization-role"
     | "fetch-organization-user-roles"
     | "fetch-organization"
@@ -144,7 +159,134 @@ const mapApiClientError = (
     status: error.status
   })
 
+const decodeUserResponse = (body: unknown): Effect.Effect<User, UseCaseError> =>
+  Schema.decodeUnknown(UserResponse)(body).pipe(
+    Effect.map((response) => response.data),
+    Effect.mapError(
+      (error) =>
+        new UseCaseError({
+          phase: "parse-response",
+          message: getErrorMessage(error)
+        })
+    )
+  )
+
+const findUserByEmail = (
+  usecaseApiClient: ReturnType<typeof createUsecaseApiClient>,
+  email: string
+): Effect.Effect<User | undefined, UseCaseError> =>
+  usecaseApiClient.user.byEmail(email).pipe(
+    Effect.matchEffect({
+      onFailure: (error) =>
+        error.status === 404
+          ? Effect.succeed(undefined)
+          : Effect.fail(mapApiClientError("fetch-user", error)),
+      onSuccess: (body) =>
+        decodeUserResponse(body).pipe(
+          Effect.map((user): User | undefined => user)
+        )
+    })
+  )
+
+const createUser = (
+  usecaseApiClient: ReturnType<typeof createUsecaseApiClient>,
+  input: AddUserUserInput
+): Effect.Effect<User, UseCaseError> =>
+  usecaseApiClient.user
+    .post({
+      name: input.name,
+      email: input.email
+    })
+    .pipe(
+      Effect.mapError((error) => mapApiClientError("create-user", error)),
+      Effect.flatMap(decodeUserResponse)
+    )
+
+const createUserWithAuth = (
+  input: AddUserUserInput,
+  authorization: string | undefined
+): Effect.Effect<User, UseCaseError> =>
+  Effect.gen(function* () {
+    const usecaseApiClient = createUsecaseApiClient(authorization)
+    const user =
+      (yield* findUserByEmail(usecaseApiClient, input.email)) ??
+      (yield* createUser(usecaseApiClient, input))
+
+    yield* usecaseApiClient.auth
+      .setPasswordForUser(user.id, {
+        email: input.email,
+        password: input.password
+      })
+      .pipe(
+        Effect.mapError((error) => mapApiClientError("create-auth", error)),
+        Effect.flatMap((body) =>
+          Schema.decodeUnknown(AuthUserPasswordResponse)(body).pipe(
+            Effect.mapError(
+              (error) =>
+                new UseCaseError({
+                  phase: "parse-response",
+                  message: getErrorMessage(error)
+                })
+            )
+          )
+        )
+      )
+
+    return user
+  })
+
 export const UsecaseService = {
+  createUser: (
+    input: AddUserUserInput,
+    authorization: string | undefined
+  ): Effect.Effect<User, UseCaseError> =>
+    createUserWithAuth(input, authorization),
+
+  updateUserPassword: (
+    userId: string,
+    input: UpdateUserPasswordInput,
+    authorization: string | undefined
+  ): Effect.Effect<User, UseCaseError> =>
+    Effect.gen(function* () {
+      const usecaseApiClient = createUsecaseApiClient(authorization)
+      const userResponse = yield* usecaseApiClient.user.getById(userId).pipe(
+        Effect.mapError((error) => mapApiClientError("fetch-user", error)),
+        Effect.flatMap((body) =>
+          Schema.decodeUnknown(UserResponse)(body).pipe(
+            Effect.mapError(
+              (error) =>
+                new UseCaseError({
+                  phase: "parse-response",
+                  message: getErrorMessage(error)
+                })
+            )
+          )
+        )
+      )
+
+      yield* usecaseApiClient.auth
+        .setPasswordForUser(userId, {
+          email: userResponse.data.email,
+          password: input.password
+        })
+        .pipe(
+          Effect.mapError((error) => mapApiClientError("update-auth", error)),
+          Effect.flatMap((body) =>
+            Schema.decodeUnknown(AuthUserPasswordResponse)(body).pipe(
+              Effect.mapError(
+                (error) =>
+                  new UseCaseError({
+                    phase: "parse-response",
+                    message: getErrorMessage(error)
+                  })
+              )
+            )
+          )
+        )
+
+      return userResponse.data
+    }),
+
   findOrganizationsForUser: (
     userId: string,
     authorization: string | undefined
@@ -691,25 +833,12 @@ export const UsecaseService = {
   ): Effect.Effect<AddUserResult, UseCaseError> =>
     Effect.gen(function* () {
       const usecaseApiClient = createUsecaseApiClient(authorization)
-      const userResponse = yield* usecaseApiClient.user.post(input.user).pipe(
-        Effect.mapError((error) => mapApiClientError("create-user", error)),
-        Effect.flatMap((body) =>
-          Schema.decodeUnknown(UserResponse)(body).pipe(
-            Effect.mapError(
-              (error) =>
-                new UseCaseError({
-                  phase: "parse-response",
-                  message: getErrorMessage(error)
-                })
-            )
-          )
-        )
-      )
+      const user = yield* createUserWithAuth(input.user, authorization)
 
       const organizationUserRoleResponse = yield* usecaseApiClient.organizationUserRole
         .post({
           organizationId: input.organizationId,
-          userId: userResponse.data.id,
+          userId: user.id,
           roleId: input.roleId
         })
         .pipe(
@@ -730,7 +859,7 @@ export const UsecaseService = {
         )
 
       return {
-        user: userResponse.data,
+        user,
         organizationUserRole: organizationUserRoleResponse.data
       }
     })

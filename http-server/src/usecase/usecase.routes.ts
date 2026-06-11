@@ -8,16 +8,22 @@ import { AuthenticatedUserId } from "../auth/index.js"
 import {
   AddCustomerInput,
   AddUserInput,
+  AddUserUserInput,
   AddWorkOrderItemInput,
   AddWorkOrderToCustomerInput,
   RemoveWorkOrderItemInput,
   SetWorkOrderItemQuantityInput,
-  SetWorkOrderStatusInput
+  SetWorkOrderStatusInput,
+  UpdateUserPasswordInput
 } from "./usecase.model.js"
 import { UsecaseService } from "./usecase.service.js"
 
 const WorkOrderPathParams = Schema.Struct({
   workOrderId: Schema.String
+})
+
+const UserPathParams = Schema.Struct({
+  id: Schema.String
 })
 
 const addWorkOrderToCustomerHandler = Effect.gen(function* () {
@@ -282,6 +288,78 @@ export const usecaseRoutes = HttpRouter.empty.pipe(
                 status: 201
               }
             )
+        })
+      )
+    })
+  ),
+
+  HttpRouter.post(
+    "/users",
+    Effect.gen(function* () {
+      const request = yield* HttpServerRequest.HttpServerRequest
+      const input = yield* HttpServerRequest.schemaBodyJson(AddUserUserInput)
+
+      return yield* UsecaseService.createUser(
+        input,
+        request.headers.authorization
+      ).pipe(
+        Effect.matchEffect({
+          onFailure: (error) =>
+            HttpServerResponse.json(
+              {
+                message: "Unable to create user",
+                phase: error.phase
+              },
+              {
+                status: error.status ?? 400
+              }
+            ),
+          onSuccess: (user) =>
+            HttpServerResponse.json(
+              {
+                data: user
+              },
+              {
+                status: 201
+              }
+            )
+        })
+      )
+    })
+  ),
+
+  HttpRouter.put(
+    "/users/:id/password",
+    Effect.gen(function* () {
+      const request = yield* HttpServerRequest.HttpServerRequest
+      const { id } = yield* HttpRouter.schemaPathParams(UserPathParams)
+      const input = yield* HttpServerRequest.schemaBodyJson(
+        UpdateUserPasswordInput
+      )
+
+      return yield* UsecaseService.updateUserPassword(
+        id,
+        input,
+        request.headers.authorization
+      ).pipe(
+        Effect.matchEffect({
+          onFailure: (error) =>
+            HttpServerResponse.json(
+              {
+                message:
+                  error.phase === "fetch-user"
+                    ? `User ${id} not found`
+                    : "Unable to update user password",
+                phase: error.phase
+              },
+              {
+                status: error.status ?? 400
+              }
+            ),
+          onSuccess: (user) =>
+            HttpServerResponse.json({
+              data: user
+            })
         })
       )
     })

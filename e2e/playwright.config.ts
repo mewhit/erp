@@ -27,7 +27,7 @@ export default defineConfig({
   webServer: shouldStartWebServers
     ? [
         {
-          command: "node ../http-server/node_modules/tsx/dist/cli.mjs ../http-server/src/main.ts",
+          command: "node ../node_modules/tsx/dist/cli.mjs ../http-server/src/main.ts",
           url: `${apiBaseUrl}/health-check`,
           reuseExistingServer: true,
           timeout: 120_000,
@@ -39,7 +39,7 @@ export default defineConfig({
         },
         {
           command:
-            `node ../admin-web-app/node_modules/vite/bin/vite.js ../admin-web-app --host ${adminHost} --port ${adminPort} --strictPort`,
+            `node ../node_modules/vite/bin/vite.js ../admin-web-app --host ${adminHost} --port ${adminPort} --strictPort`,
           url: adminBaseUrl,
           reuseExistingServer: true,
           timeout: 120_000,
@@ -49,7 +49,7 @@ export default defineConfig({
         },
         {
           command:
-            `node ../user-portal-webapp/node_modules/vite/bin/vite.js ../user-portal-webapp --host ${userHost} --port ${userPort} --strictPort`,
+            `node ../node_modules/vite/bin/vite.js ../user-portal-webapp --host ${userHost} --port ${userPort} --strictPort`,
           url: userBaseUrl,
           reuseExistingServer: true,
           timeout: 120_000,

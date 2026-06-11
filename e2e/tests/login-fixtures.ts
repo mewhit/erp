@@ -3,9 +3,21 @@ import { getRequiredEnv } from "../env";
 
 export const apiBaseUrl = getRequiredEnv("API_BASE_URL");
 export const testPassword = "Playwright-login-2026!";
+const setupEmail = process.env.E2E_SETUP_EMAIL ?? "mikewhittom27@gmail.com";
+const setupPassword = process.env.E2E_SETUP_PASSWORD ?? "password123";
+
+type ApiRequestOptions = {
+  data?: unknown;
+};
 
 type ApiListResponse<T> = {
   data: T[];
+};
+
+type AuthSessionResponse = {
+  data: {
+    token: string;
+  };
 };
 
 type Organization = {
@@ -93,6 +105,32 @@ type AddWorkOrderToCustomerResult = {
   customerWorkOrder: CustomerWorkOrder;
 };
 
+async function getApiAuthHeaders(request: APIRequestContext): Promise<Record<string, string>> {
+  const response = await request.post(`${apiBaseUrl}/auth/login`, {
+    data: {
+      email: setupEmail,
+      password: setupPassword
+    }
+  });
+
+  expect(response.status(), await response.text()).toBe(200);
+
+  const body = (await response.json()) as AuthSessionResponse;
+  return {
+    Authorization: `Bearer ${body.data.token}`
+  };
+}
+
+async function withApiAuth(
+  request: APIRequestContext,
+  options: ApiRequestOptions = {}
+): Promise<ApiRequestOptions & { headers: Record<string, string> }> {
+  return {
+    ...options,
+    headers: await getApiAuthHeaders(request)
+  };
+}
+
 export async function createTestUser(request: APIRequestContext, portal: string) {
   const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const user = {
@@ -101,8 +139,8 @@ export async function createTestUser(request: APIRequestContext, portal: string)
     password: testPassword
   };
 
-  const response = await request.post(`${apiBaseUrl}/users/`, {
-    data: user
+  const response = await request.post(`${apiBaseUrl}/usecase/users`, {
+    ...(await withApiAuth(request, { data: user }))
   });
 
   expect(response.status(), await response.text()).toBe(201);
@@ -111,7 +149,7 @@ export async function createTestUser(request: APIRequestContext, portal: string)
 }
 
 export async function getDefaultOrganization(request: APIRequestContext) {
-  const response = await request.get(`${apiBaseUrl}/organizations/`);
+  const response = await request.get(`${apiBaseUrl}/organizations/`, await withApiAuth(request));
   expect(response.status(), await response.text()).toBe(200);
 
   const body = (await response.json()) as ApiListResponse<Organization>;
@@ -121,7 +159,7 @@ export async function getDefaultOrganization(request: APIRequestContext) {
 }
 
 export async function getRoleByCode(request: APIRequestContext, code: string) {
-  const response = await request.get(`${apiBaseUrl}/roles/`);
+  const response = await request.get(`${apiBaseUrl}/roles/`, await withApiAuth(request));
   expect(response.status(), await response.text()).toBe(200);
 
   const body = (await response.json()) as ApiListResponse<Role>;
@@ -136,10 +174,12 @@ export async function getRoleByCode(request: APIRequestContext, code: string) {
     .replace(/(^|-)([a-z])/g, (_match, prefix: string, value: string) => `${prefix}${value.toUpperCase()}`);
 
   const createResponse = await request.post(`${apiBaseUrl}/roles/`, {
-    data: {
-      name,
-      code
-    }
+    ...(await withApiAuth(request, {
+      data: {
+        name,
+        code
+      }
+    }))
   });
   expect(createResponse.status(), await createResponse.text()).toBe(201);
 
@@ -159,8 +199,8 @@ export async function addUserToOrganization(
     roleId: string;
   }
 ) {
-  const response = await request.post(`${apiBaseUrl}/usecases/add-user`, {
-    data: input
+  const response = await request.post(`${apiBaseUrl}/usecase/add-user`, {
+    ...(await withApiAuth(request, { data: input }))
   });
 
   expect(response.status(), await response.text()).toBe(201);
@@ -182,7 +222,7 @@ export async function addCustomerToOrganization(
   }
 ) {
   const response = await request.post(`${apiBaseUrl}/usecases/add-customer`, {
-    data: input
+    ...(await withApiAuth(request, { data: input }))
   });
 
   expect(response.status(), await response.text()).toBe(201);
@@ -205,7 +245,7 @@ export async function addWorkOrderToCustomer(
   }
 ) {
   const response = await request.post(`${apiBaseUrl}/usecases/add-work-order-to-customer`, {
-    data: input
+    ...(await withApiAuth(request, { data: input }))
   });
 
   expect(response.status(), await response.text()).toBe(201);
@@ -225,7 +265,7 @@ export async function createTestItem(request: APIRequestContext, label: string) 
   };
 
   const response = await request.post(`${apiBaseUrl}/items/`, {
-    data: itemInput
+    ...(await withApiAuth(request, { data: itemInput }))
   });
 
   expect(response.status(), await response.text()).toBe(201);
@@ -245,7 +285,7 @@ export async function addItemToWorkOrder(
   }
 ) {
   const response = await request.post(`${apiBaseUrl}/work-order-items/`, {
-    data: input
+    ...(await withApiAuth(request, { data: input }))
   });
 
   expect(response.status(), await response.text()).toBe(201);
@@ -255,7 +295,7 @@ export async function addItemToWorkOrder(
 }
 
 export async function getWorkOrderItem(request: APIRequestContext, id: string) {
-  const response = await request.get(`${apiBaseUrl}/work-order-items/${id}`);
+  const response = await request.get(`${apiBaseUrl}/work-order-items/${id}`, await withApiAuth(request));
   expect(response.status(), await response.text()).toBe(200);
 
   const body = (await response.json()) as { data: WorkOrderItem };
@@ -263,41 +303,41 @@ export async function getWorkOrderItem(request: APIRequestContext, id: string) {
 }
 
 export async function deleteOrganizationUserRole(request: APIRequestContext, id: string) {
-  const response = await request.delete(`${apiBaseUrl}/organization-user-roles/${id}`);
+  const response = await request.delete(`${apiBaseUrl}/organization-user-roles/${id}`, await withApiAuth(request));
   expect([204, 404]).toContain(response.status());
 }
 
 export async function deleteOrganizationCustomer(request: APIRequestContext, id: string) {
-  const response = await request.delete(`${apiBaseUrl}/organization-customers/${id}`);
+  const response = await request.delete(`${apiBaseUrl}/organization-customers/${id}`, await withApiAuth(request));
   expect([204, 404]).toContain(response.status());
 }
 
 export async function deleteCustomerWorkOrder(request: APIRequestContext, id: string) {
-  const response = await request.delete(`${apiBaseUrl}/customer-work-orders/${id}`);
+  const response = await request.delete(`${apiBaseUrl}/customer-work-orders/${id}`, await withApiAuth(request));
   expect([204, 404]).toContain(response.status());
 }
 
 export async function deleteWorkOrderItem(request: APIRequestContext, id: string) {
-  const response = await request.delete(`${apiBaseUrl}/work-order-items/${id}`);
+  const response = await request.delete(`${apiBaseUrl}/work-order-items/${id}`, await withApiAuth(request));
   expect([204, 404]).toContain(response.status());
 }
 
 export async function deleteWorkOrder(request: APIRequestContext, id: string) {
-  const response = await request.delete(`${apiBaseUrl}/work-orders/${id}`);
+  const response = await request.delete(`${apiBaseUrl}/work-orders/${id}`, await withApiAuth(request));
   expect([204, 404]).toContain(response.status());
 }
 
 export async function deleteCustomer(request: APIRequestContext, id: string) {
-  const response = await request.delete(`${apiBaseUrl}/customers/${id}`);
+  const response = await request.delete(`${apiBaseUrl}/customers/${id}`, await withApiAuth(request));
   expect([204, 404]).toContain(response.status());
 }
 
 export async function deleteItem(request: APIRequestContext, id: string) {
-  const response = await request.delete(`${apiBaseUrl}/items/${id}`);
+  const response = await request.delete(`${apiBaseUrl}/items/${id}`, await withApiAuth(request));
   expect([204, 404]).toContain(response.status());
 }
 
 export async function deleteUser(request: APIRequestContext, id: string) {
-  const response = await request.delete(`${apiBaseUrl}/users/${id}`);
+  const response = await request.delete(`${apiBaseUrl}/users/${id}`, await withApiAuth(request));
   expect([204, 404]).toContain(response.status());
 }

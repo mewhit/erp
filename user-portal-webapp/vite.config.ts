@@ -32,6 +32,9 @@ export default defineConfig(({ mode }) => {
   return {
     envDir: appDir,
     plugins: [react(), tailwindcss()],
-    server: getServerConfig(env)
+    server: {
+      ...getServerConfig(env),
+      strictPort: true
+    }
   };
 });

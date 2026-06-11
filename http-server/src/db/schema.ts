@@ -47,6 +47,7 @@ export const authentications = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    email: varchar("email", { length: 255 }).notNull(),
     passwordHash: varchar("password_hash", { length: 255 }).notNull(),
     passwordUpdatedAt: timestamp("password_updated_at").defaultNow().notNull(),
     isEmailVerified: boolean("is_email_verified").default(false).notNull(),
@@ -57,7 +58,10 @@ export const authentications = pgTable(
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull()
   },
-  (table) => [uniqueIndex("authentications_user_id_unique").on(table.userId)]
+  (table) => [
+    uniqueIndex("authentications_user_id_unique").on(table.userId),
+    uniqueIndex("authentications_email_unique").on(table.email)
+  ]
 )
 
 export const roles = pgTable(

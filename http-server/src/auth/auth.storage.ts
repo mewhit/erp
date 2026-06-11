@@ -1,68 +1,104 @@
-import { and, eq, isNull } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import { db } from "../db/client.js"
-import { authentications, users } from "../db/schema.js"
-import type { User } from "../user/user.model.js"
+import { authentications } from "../db/schema.js"
 
-type AuthenticatedUser = User & {
+type UserAuthentication = {
+  userId: string
   passwordHash: string
 }
 
-const toUser = (
-  user: typeof users.$inferSelect,
+const toUserAuthentication = (
   authentication: typeof authentications.$inferSelect
-): AuthenticatedUser => {
-  const name =
-    user.displayName ??
-    [user.firstName, user.lastName].filter(Boolean).join(" ") ??
-    user.email
-
-  return {
-    id: user.id,
-    name: name === "" ? user.email : name,
-    email: user.email,
-    createdAt: user.createdAt.toISOString(),
-    passwordHash: authentication.passwordHash
-  }
-}
+): UserAuthentication => ({
+  userId: authentication.userId,
+  passwordHash: authentication.passwordHash
+})
 
 export const AuthStorage = {
   findByEmailWithPassword: async (
     email: string
-  ): Promise<AuthenticatedUser | undefined> => {
-    const [row] = await db
-      .select({
-        user: users,
-        authentication: authentications
-      })
+  ): Promise<UserAuthentication | undefined> => {
+    const [authentication] = await db
+      .select()
       .from(authentications)
-      .innerJoin(users, eq(authentications.userId, users.id))
-      .where(
-        and(
-          eq(users.email, email),
-          isNull(users.deletedAt)
-        )
-      )
+      .where(eq(authentications.email, email))
       .limit(1)
 
     if (
-      row === undefined ||
-      !row.user.isActive ||
-      (row.authentication.lockedUntil !== null &&
-        row.authentication.lockedUntil > new Date())
+      authentication === undefined ||
+      (authentication.lockedUntil !== null &&
+        authentication.lockedUntil > new Date())
     ) {
       return undefined
     }
 
-    return toUser(row.user, row.authentication)
+    return toUserAuthentication(authentication)
+  },
+
+  findByUserIdWithPassword: async (
+    userId: string
+  ): Promise<UserAuthentication | undefined> => {
+    const [authentication] = await db
+      .select()
+      .from(authentications)
+      .where(eq(authentications.userId, userId))
+      .limit(1)
+
+    if (
+      authentication === undefined ||
+      (authentication.lockedUntil !== null &&
+        authentication.lockedUntil > new Date())
+    ) {
+      return undefined
+    }
+
+    return toUserAuthentication(authentication)
   },
 
   createForUser: async (input: {
     userId: string
+    email: string
     passwordHash: string
   }): Promise<void> => {
     await db.insert(authentications).values({
       userId: input.userId,
+      email: input.email,
       passwordHash: input.passwordHash
     })
+  },
+
+  setPasswordForUser: async (input: {
+    userId: string
+    email: string
+    passwordHash: string
+  }): Promise<boolean> => {
+    const now = new Date()
+
+    const [authentication] = await db
+      .insert(authentications)
+      .values({
+        userId: input.userId,
+        email: input.email,
+        passwordHash: input.passwordHash,
+        passwordUpdatedAt: now,
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        createdAt: now,
+        updatedAt: now
+      })
+      .onConflictDoUpdate({
+        target: authentications.userId,
+        set: {
+          email: input.email,
+          passwordHash: input.passwordHash,
+          passwordUpdatedAt: now,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          updatedAt: now
+        }
+      })
+      .returning({ userId: authentications.userId })
+
+    return authentication !== undefined
   }
 }

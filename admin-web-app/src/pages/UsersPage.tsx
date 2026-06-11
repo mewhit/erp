@@ -1,8 +1,11 @@
+import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useEffectQuery } from "../hooks";
 import { getUsers } from "../services/adminData";
 
 export function UsersPage() {
-  const users = useEffectQuery(getUsers());
+  const usersProgram = useMemo(() => getUsers(), []);
+  const users = useEffectQuery(usersProgram);
 
   return (
     <>
@@ -19,14 +22,30 @@ export function UsersPage() {
                 <TableHeader>Name</TableHeader>
                 <TableHeader>Email</TableHeader>
                 <TableHeader>Created</TableHeader>
+                <TableHeader>Actions</TableHeader>
               </tr>
             </thead>
             <tbody>
               {users.data.map((user) => (
                 <tr key={user.id}>
-                  <TableCell>{user.name}</TableCell>
+                  <TableCell>
+                    <Link
+                      className="font-bold text-cyan-800 no-underline hover:text-slate-900"
+                      to={`/users/${user.id}`}
+                    >
+                      {user.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{formatDate(user.createdAt)}</TableCell>
+                  <TableCell>
+                    <Link
+                      className="inline-flex min-h-9 items-center rounded-lg border border-slate-200 bg-white px-3 font-bold text-slate-600 no-underline transition-colors hover:bg-slate-100"
+                      to={`/users/${user.id}`}
+                    >
+                      Details
+                    </Link>
+                  </TableCell>
                 </tr>
               ))}
             </tbody>

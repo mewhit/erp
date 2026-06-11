@@ -3,10 +3,12 @@ import {
   HttpServerRequest,
   HttpServerResponse
 } from "@effect/platform"
-import { Effect } from "effect"
-import { UserService } from "../user/user.service.js"
+import { Effect, Schema } from "effect"
 import { AuthenticatedUserId } from "./auth.guard.js"
-import { LoginInput } from "./auth.model.js"
+import {
+  CreateUserAuthenticationInput,
+  LoginInput
+} from "./auth.model.js"
 import { AuthService } from "./auth.service.js"
 
 const unauthorized = () =>
@@ -16,6 +18,20 @@ const unauthorized = () =>
     },
     {
       status: 401
+    }
+  )
+
+const AuthUserPathParams = Schema.Struct({
+  userId: Schema.String
+})
+
+const userNotFound = (userId: string) =>
+  HttpServerResponse.json(
+    {
+      message: `User ${userId} not found`
+    },
+    {
+      status: 404
     }
   )
 
@@ -42,14 +58,62 @@ export const authRoutes = HttpRouter.empty.pipe(
     "/me",
     Effect.gen(function* () {
       const userId = yield* AuthenticatedUserId
-      const user = yield* Effect.promise(() => UserService.findById(userId))
 
-      if (user === undefined) {
-        return yield* unauthorized()
+      return yield* HttpServerResponse.json({
+        data: {
+          userId
+        }
+      })
+    })
+  ),
+
+  HttpRouter.post(
+    "/users/:userId/password",
+    Effect.gen(function* () {
+      const { userId } = yield* HttpRouter.schemaPathParams(AuthUserPathParams)
+      const input = yield* HttpServerRequest.schemaBodyJson(
+        CreateUserAuthenticationInput
+      )
+      const created = yield* Effect.promise(() =>
+        AuthService.createForUser(userId, input)
+      )
+
+      if (!created) {
+        return yield* userNotFound(userId)
+      }
+
+      return yield* HttpServerResponse.json(
+        {
+          data: {
+            userId
+          }
+        },
+        {
+          status: 201
+        }
+      )
+    })
+  ),
+
+  HttpRouter.put(
+    "/users/:userId/password",
+    Effect.gen(function* () {
+      const { userId } = yield* HttpRouter.schemaPathParams(AuthUserPathParams)
+      const input = yield* HttpServerRequest.schemaBodyJson(
+        CreateUserAuthenticationInput
+      )
+      const updated = yield* Effect.promise(() =>
+        AuthService.setPasswordForUser(userId, input)
+      )
+
+      if (!updated) {
+        return yield* userNotFound(userId)
       }
 
       return yield* HttpServerResponse.json({
-        data: user
+        data: {
+          userId
+        }
       })
     })
   )

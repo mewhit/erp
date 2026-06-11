@@ -9,7 +9,11 @@
     "e2e"
   ],
   "scripts": {
-    "dev": "node scripts/dev.mjs",
+    "dev": "concurrently --kill-others --names api,admin,portal --prefix \"[{name}]\" \"yarn dev:api\" \"yarn dev:admin\" \"yarn dev:portal\"",
+    "dev:api": "yarn workspace erp-effect-http-server dev",
+    "dev:admin": "yarn workspace admin-web-app dev",
+    "dev:portal": "yarn workspace user-portal-webapp dev",
+    "e2e": "yarn workspace erp-e2e test",
     "build": "yarn workspace erp-effect-http-server build && yarn workspace admin-web-app build && yarn workspace user-portal-webapp build",
     "db:generate": "yarn workspace erp-effect-http-server db:generate",
     "db:migrate": "yarn workspace erp-effect-http-server db:migrate",

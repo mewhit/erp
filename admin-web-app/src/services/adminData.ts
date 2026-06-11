@@ -36,11 +36,22 @@ const UsersResponseSchema = Schema.Struct({
   data: Schema.Array(UserSchema)
 });
 
+const UserResponseSchema = Schema.Struct({
+  data: UserSchema
+});
+
 export type User = typeof UserSchema.Type;
 
 export type CreateUserInput = {
   name: string;
   email: string;
+};
+
+export type CreateUserWithPasswordInput = CreateUserInput & {
+  password: string;
+};
+
+export type UpdateUserPasswordInput = {
   password: string;
 };
 
@@ -166,7 +177,7 @@ export type CreateOrganizationUserRoleInput = {
 };
 
 export type AddUserToOrganizationInput = {
-  user: CreateUserInput;
+  user: CreateUserWithPasswordInput;
   organizationId: string;
   roleId: string;
 };
@@ -396,6 +407,41 @@ export const getUsers = () =>
     Effect.map((response) => response.data)
   );
 
+export const getUser = (id: string) =>
+  requestJson(`/users/${id}`).pipe(
+    Effect.flatMap(Schema.decodeUnknown(UserResponseSchema)),
+    Effect.map((response) => response.data)
+  );
+
+export const createUser = (input: CreateUserWithPasswordInput) =>
+  requestJson("/usecase/users", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  }).pipe(
+    Effect.flatMap(Schema.decodeUnknown(UserResponseSchema)),
+    Effect.map((response) => response.data)
+  );
+
+export const updateUserPassword = (id: string, input: UpdateUserPasswordInput) =>
+  requestJson(`/usecase/users/${id}/password`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(input)
+  }).pipe(
+    Effect.flatMap(Schema.decodeUnknown(UserResponseSchema)),
+    Effect.map((response) => response.data)
+  );
+
+export const deactivateUser = (id: string) =>
+  requestEmpty(`/users/${id}`, {
+    method: "DELETE"
+  });
+
 export const getItems = () =>
   requestJson("/items/").pipe(
     Effect.flatMap(Schema.decodeUnknown(ItemsResponseSchema)),
@@ -518,7 +564,7 @@ export const deleteOrganizationUserRole = (id: string) =>
   });
 
 export const addUserToOrganization = (input: AddUserToOrganizationInput) =>
-  requestJson("/usecases/add-user", {
+  requestJson("/usecase/add-user", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

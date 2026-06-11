@@ -137,6 +137,22 @@ const createResourceClient = (path: string, options: ApiClientOptions) => ({
 })
 
 export const createApiClient = (options: ApiClientOptions = {}) => ({
+  auth: {
+    createForUser: (userId: string, body: unknown) =>
+      requestJson({
+        ...options,
+        path: `/auth/users/${encodeURIComponent(userId)}/password`,
+        method: "POST",
+        body
+      }),
+    setPasswordForUser: (userId: string, body: unknown) =>
+      requestJson({
+        ...options,
+        path: `/auth/users/${encodeURIComponent(userId)}/password`,
+        method: "PUT",
+        body
+      })
+  },
   customer: createResourceClient("/customers/", options),
   customerWorkOrder: createResourceClient("/customer-work-orders/", options),
   item: createResourceClient("/items/", options),
@@ -145,7 +161,14 @@ export const createApiClient = (options: ApiClientOptions = {}) => ({
     "/organization-customers/",
     options
   ),
-  user: createResourceClient("/users/", options),
+  user: {
+    ...createResourceClient("/users/", options),
+    byEmail: (email: string) =>
+      requestJson({
+        ...options,
+        path: `/users/by-email/${encodeURIComponent(email)}`
+      })
+  },
   organizationUserRole: {
     ...createResourceClient("/organization-user-roles/", options),
     byUserId: (userId: string) =>

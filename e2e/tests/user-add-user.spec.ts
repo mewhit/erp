@@ -22,7 +22,7 @@ test("user can create a new user", async ({ page, request }) => {
 
   await page.goto("/login");
   await page.getByLabel("Email").fill(user.email);
-  await page.getByLabel("Password").fill(testPassword);
+  await page.getByLabel("Password", { exact: true }).fill(testPassword);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 
@@ -40,7 +40,7 @@ test("user can create a new user", async ({ page, request }) => {
 
     await page.getByRole("button", { name: "Sign out" }).click();
     await page.getByLabel("Email").fill(newUser.email);
-    await page.getByLabel("Password").fill(testPassword);
+    await page.getByLabel("Password", { exact: true }).fill(testPassword);
     await page.getByRole("button", { name: "Sign in" }).click();
 
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();

@@ -15,6 +15,7 @@ import {
   Role,
   User
 } from "../services/adminData";
+import { generateRandomPassword } from "../utils/password";
 
 type OrganizationDetailData = {
   organization: Organization;
@@ -378,14 +379,6 @@ export function OrganizationDetailPage() {
       </section>
     </>
   );
-}
-
-function generateRandomPassword() {
-  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*";
-  const values = new Uint32Array(14);
-  crypto.getRandomValues(values);
-
-  return Array.from(values, (value) => characters[value % characters.length]).join("");
 }
 
 function PageFrame({ title, children }: { title: string; children: React.ReactNode }) {

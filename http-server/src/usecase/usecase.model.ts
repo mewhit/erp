@@ -14,6 +14,8 @@ export const AddUserUserInput = Schema.Struct({
   password: Schema.String
 })
 
+export type AddUserUserInput = typeof AddUserUserInput.Type
+
 export const AddUserInput = Schema.Struct({
   user: AddUserUserInput,
   organizationId: Schema.String,
@@ -21,6 +23,12 @@ export const AddUserInput = Schema.Struct({
 })
 
 export type AddUserInput = typeof AddUserInput.Type
+
+export const UpdateUserPasswordInput = Schema.Struct({
+  password: Schema.String
+})
+
+export type UpdateUserPasswordInput = typeof UpdateUserPasswordInput.Type
 
 export const AddCustomerInput = Schema.Struct({
   customer: CreateCustomerInput,

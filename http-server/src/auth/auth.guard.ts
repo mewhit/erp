@@ -47,12 +47,12 @@ export const authGuard = HttpMiddleware.make((app) =>
       return yield* unauthorized()
     }
 
-    const user = yield* Effect.promise(() => AuthService.findUserByToken(token))
+    const userId = AuthService.getUserIdByToken(token)
 
-    if (user === undefined) {
+    if (userId === undefined) {
       return yield* unauthorized()
     }
 
-    return yield* app.pipe(Effect.provideService(AuthenticatedUserId, user.id))
+    return yield* app.pipe(Effect.provideService(AuthenticatedUserId, userId))
   })
 )

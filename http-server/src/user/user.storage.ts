@@ -38,6 +38,22 @@ export const UserStorage = {
     return user === undefined ? undefined : toUser(user)
   },
 
+  findByEmail: async (email: string): Promise<User | undefined> => {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.email, email),
+          eq(users.isActive, true),
+          isNull(users.deletedAt)
+        )
+      )
+      .limit(1)
+
+    return user === undefined ? undefined : toUser(user)
+  },
+
   create: async (input: { name: string; email: string }): Promise<User> => {
     const [user] = await db
       .insert(users)

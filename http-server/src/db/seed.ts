@@ -44,6 +44,7 @@ try {
     .insert(authentications)
     .values({
       userId: mike.id,
+      email: mikeEmail,
       passwordHash: mikePasswordHash,
       createdAt: seededAt,
       updatedAt: seededAt
@@ -51,6 +52,7 @@ try {
     .onConflictDoUpdate({
       target: authentications.userId,
       set: {
+        email: mikeEmail,
         passwordHash: mikePasswordHash,
         updatedAt: seededAt
       }

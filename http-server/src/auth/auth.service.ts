@@ -1,35 +1,52 @@
-import { UserStorage } from "../user/user.storage.js"
-import type { AuthSession, LoginInput } from "./auth.model.js"
+import {
+  type AuthSession,
+  type CreateUserAuthenticationInput,
+  type LoginInput
+} from "./auth.model.js"
 import { AuthStorage } from "./auth.storage.js"
-import { verifyPassword } from "./password.js"
+import { hashPassword, verifyPassword } from "./password.js"
 import { createAuthToken, verifyAuthToken } from "./token.js"
 
 export const AuthService = {
   login: async (input: LoginInput): Promise<AuthSession | undefined> => {
-    const user = await AuthStorage.findByEmailWithPassword(input.email)
+    const authentication = await AuthStorage.findByEmailWithPassword(input.email)
 
     if (
-      user === undefined ||
-      !(await verifyPassword(input.password, user.passwordHash))
+      authentication === undefined ||
+      !(await verifyPassword(input.password, authentication.passwordHash))
     ) {
       return undefined
     }
 
-    const { passwordHash: _passwordHash, ...safeUser } = user
-
     return {
-      token: createAuthToken(safeUser),
-      user: safeUser
+      token: createAuthToken(authentication.userId)
     }
   },
 
-  findUserByToken: async (token: string) => {
-    const payload = verifyAuthToken(token)
+  getUserIdByToken: (token: string): string | undefined =>
+    verifyAuthToken(token)?.userId,
 
-    if (payload === undefined) {
-      return undefined
-    }
+  createForUser: async (
+    userId: string,
+    input: CreateUserAuthenticationInput
+  ): Promise<boolean> => {
+    await AuthStorage.createForUser({
+      userId,
+      email: input.email,
+      passwordHash: await hashPassword(input.password)
+    })
 
-    return UserStorage.findById(payload.userId)
+    return true
+  },
+
+  setPasswordForUser: async (
+    userId: string,
+    input: CreateUserAuthenticationInput
+  ): Promise<boolean> => {
+    return AuthStorage.setPasswordForUser({
+      userId,
+      email: input.email,
+      passwordHash: await hashPassword(input.password)
+    })
   }
 }

@@ -67,6 +67,19 @@ function Get-EnvValue {
   throw "$Name must be set in the environment or .env"
 }
 
+function Get-RequiredPath {
+  param(
+    [string]$Name,
+    [string]$Path
+  )
+
+  if (!(Test-Path $Path)) {
+    throw "$Name was not found at $Path. Run yarn install from the repository root."
+  }
+
+  return (Resolve-Path $Path).Path
+}
+
 Import-DotEnv -Path (Join-Path $e2eRoot ".env")
 
 function Test-Url {
@@ -76,6 +89,13 @@ function Test-Url {
     $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 2
     return $response.StatusCode -ge 200 -and $response.StatusCode -lt 500
   } catch {
+    $response = $_.Exception.Response
+
+    if ($null -ne $response -and $null -ne $response.StatusCode) {
+      $statusCode = [int]$response.StatusCode
+      return $statusCode -ge 200 -and $statusCode -lt 500
+    }
+
     return $false
   }
 }
@@ -130,17 +150,56 @@ function Start-E2EServer {
   return $process
 }
 
+function Invoke-E2ESetupCommand {
+  param(
+    [string]$Name,
+    [string]$WorkingDirectory,
+    [string[]]$Arguments
+  )
+
+  Write-Host $Name
+  $node = (Get-Command node).Source
+
+  Push-Location $WorkingDirectory
+  try {
+    & $node @Arguments
+
+    if ($LASTEXITCODE -ne 0) {
+      throw "$Name failed with exit code $LASTEXITCODE"
+    }
+  } finally {
+    Pop-Location
+  }
+}
+
 $startedProcesses = @()
 
 try {
+  $tsxCli = Get-RequiredPath `
+    -Name "tsx CLI" `
+    -Path (Join-Path $repoRoot "node_modules\tsx\dist\cli.mjs")
+  $viteCli = Get-RequiredPath `
+    -Name "Vite CLI" `
+    -Path (Join-Path $repoRoot "node_modules\vite\bin\vite.js")
+
+  $env:DATABASE_URL = Get-EnvValue -Name "DATABASE_URL"
+
+  Invoke-E2ESetupCommand `
+    -Name "Applying database migrations..." `
+    -WorkingDirectory (Join-Path $repoRoot "http-server") `
+    -Arguments @($tsxCli, "src/db/migrate.ts")
+  Invoke-E2ESetupCommand `
+    -Name "Applying database seed..." `
+    -WorkingDirectory (Join-Path $repoRoot "http-server") `
+    -Arguments @($tsxCli, "src/db/seed.ts")
+
   $apiBaseUrl = Get-EnvValue -Name "API_BASE_URL"
   $env:PORT = Get-EnvValue -Name "API_PORT"
-  $env:DATABASE_URL = Get-EnvValue -Name "DATABASE_URL"
   $env:API_CLIENT_BASE_URL = $apiBaseUrl
   $api = Start-E2EServer `
     -Name "api" `
     -WorkingDirectory (Join-Path $repoRoot "http-server") `
-    -Arguments @("node_modules/tsx/dist/cli.mjs", "src/main.ts") `
+    -Arguments @($tsxCli, "src/main.ts") `
     -ReadyUrl "$apiBaseUrl/health-check"
 
   if ($null -ne $api) {
@@ -154,7 +213,7 @@ try {
   $admin = Start-E2EServer `
     -Name "admin-web-app" `
     -WorkingDirectory (Join-Path $repoRoot "admin-web-app") `
-    -Arguments @("node_modules/vite/bin/vite.js", "--host", $adminHost, "--port", $adminPort, "--strictPort") `
+    -Arguments @($viteCli, "--host", $adminHost, "--port", $adminPort, "--strictPort") `
     -ReadyUrl $adminBaseUrl
 
   if ($null -ne $admin) {
@@ -167,7 +226,7 @@ try {
   $user = Start-E2EServer `
     -Name "user-portal-webapp" `
     -WorkingDirectory (Join-Path $repoRoot "user-portal-webapp") `
-    -Arguments @("node_modules/vite/bin/vite.js", "--host", $userHost, "--port", $userPort, "--strictPort") `
+    -Arguments @($viteCli, "--host", $userHost, "--port", $userPort, "--strictPort") `
     -ReadyUrl $userBaseUrl
 
   if ($null -ne $user) {
