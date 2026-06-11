@@ -51,6 +51,18 @@ export const OrganizationUserRoleStorage = {
     return rows.map(toOrganizationUserRole)
   },
 
+  findByOrganizationId: async (
+    organizationId: string
+  ): Promise<ReadonlyArray<OrganizationUserRole>> => {
+    const rows = await db
+      .select()
+      .from(organizationUserRoles)
+      .where(eq(organizationUserRoles.organizationId, organizationId))
+      .orderBy(organizationUserRoles.id)
+
+    return rows.map(toOrganizationUserRole)
+  },
+
   create: async (
     input: CreateOrganizationUserRoleInput
   ): Promise<OrganizationUserRole> => {

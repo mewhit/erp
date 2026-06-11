@@ -22,6 +22,10 @@ const WorkOrderPathParams = Schema.Struct({
   workOrderId: Schema.String
 })
 
+const OrganizationPathParams = Schema.Struct({
+  organizationId: Schema.String
+})
+
 const UserPathParams = Schema.Struct({
   id: Schema.String
 })
@@ -74,6 +78,40 @@ export const usecaseRoutes = HttpRouter.empty.pipe(
       return yield* HttpServerResponse.json({
         data: organizations
       })
+    })
+  ),
+
+  HttpRouter.get(
+    "/organizations/:organizationId/users",
+    Effect.gen(function* () {
+      const request = yield* HttpServerRequest.HttpServerRequest
+      const userId = yield* AuthenticatedUserId
+      const { organizationId } = yield* HttpRouter.schemaPathParams(
+        OrganizationPathParams
+      )
+
+      return yield* UsecaseService.findUsersForOrganization(
+        userId,
+        organizationId,
+        request.headers.authorization
+      ).pipe(
+        Effect.matchEffect({
+          onFailure: (error) =>
+            HttpServerResponse.json(
+              {
+                message: "Unable to load organization users",
+                phase: error.phase
+              },
+              {
+                status: error.status ?? 400
+              }
+            ),
+          onSuccess: (users) =>
+            HttpServerResponse.json({
+              data: users
+            })
+        })
+      )
     })
   ),
 

@@ -12,3 +12,9 @@ export const apiBaseUrl = getRequiredEnv(
   "VITE_API_BASE_URL",
   import.meta.env.VITE_API_BASE_URL
 );
+
+export const getWebSocketUrl = (path: string): string => {
+  const url = new URL(path, `${apiBaseUrl}/`);
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+  return url.toString();
+};

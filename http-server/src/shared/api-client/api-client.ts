@@ -175,6 +175,13 @@ export const createApiClient = (options: ApiClientOptions = {}) => ({
       requestJson({
         ...options,
         path: `/organization-user-roles/by-user/${encodeURIComponent(userId)}`
+      }),
+    byOrganizationId: (organizationId: string) =>
+      requestJson({
+        ...options,
+        path: `/organization-user-roles/by-organization/${encodeURIComponent(
+          organizationId
+        )}`
       })
   },
   workOrder: createResourceClient("/work-orders/", options),

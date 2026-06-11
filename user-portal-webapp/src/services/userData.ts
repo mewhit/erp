@@ -15,6 +15,19 @@ const OrganizationsResponseSchema = Schema.Struct({
 
 export type Organization = typeof OrganizationSchema.Type;
 
+const UserSchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+  email: Schema.String,
+  createdAt: Schema.String
+});
+
+const UsersResponseSchema = Schema.Struct({
+  data: Schema.Array(UserSchema)
+});
+
+export type User = typeof UserSchema.Type;
+
 const CustomerSchema = Schema.Struct({
   id: Schema.String,
   firstName: Schema.String,
@@ -286,6 +299,17 @@ export const getOrganizations = () =>
     Effect.flatMap(Schema.decodeUnknown(OrganizationsResponseSchema)),
     Effect.map((response) => response.data)
   );
+
+export const getOrganizationUsers = (organizationId: string) => {
+  if (organizationId === "") {
+    return Effect.succeed([] as ReadonlyArray<User>);
+  }
+
+  return requestJson(`/usecase/organizations/${organizationId}/users`).pipe(
+    Effect.flatMap(Schema.decodeUnknown(UsersResponseSchema)),
+    Effect.map((response) => response.data)
+  );
+};
 
 export const getCustomers = () =>
   requestJson("/customers/").pipe(

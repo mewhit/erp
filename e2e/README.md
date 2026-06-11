@@ -1,6 +1,6 @@
 # ERP E2E Tests
 
-Playwright tests cover login for the admin app and user portal.
+Playwright tests cover the admin app and user portal.
 
 ## Run
 
@@ -9,13 +9,29 @@ npm.cmd install
 npm.cmd run test
 ```
 
-The test script reads the API, admin, portal, and database URLs from `e2e/.env`,
-then stops the processes when the run finishes.
+`npm.cmd run test` runs `playwright test` directly.
 
-Postgres must be available at `DATABASE_URL`:
+The Playwright config loads environment variables with `dotenv`.
+Local values belong in `e2e/.env.local`; it is gitignored and has the default
+local URLs/ports used by the apps:
 
 ```text
-postgres://postgres:postgres@127.0.0.1:5432/erp
+DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/erp
+API_BASE_URL=http://127.0.0.1:3100
+ADMIN_BASE_URL=http://127.0.0.1:5174
+USER_BASE_URL=http://127.0.0.1:5175
 ```
 
-The repo's `docker-compose.yml` provides that database.
+The config also reads `.env` / `.env.local` from the repo root and app folders,
+with `e2e/.env.local` taking precedence.
+
+By default Playwright starts fresh web servers. Set
+`PLAYWRIGHT_REUSE_EXISTING_SERVER=1` only when you intentionally want to run
+against already-running dev servers.
+
+Postgres must be available at `DATABASE_URL`. The repo's `docker-compose.yml`
+provides the default database:
+
+```text
+docker compose up -d postgres
+```

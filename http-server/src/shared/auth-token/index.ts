@@ -2,4 +2,4 @@ export {
   createAuthToken,
   type AuthTokenPayload,
   verifyAuthToken
-} from "../shared/auth-token/index.js"
+} from "./token.js"

@@ -1,8 +1,10 @@
 .tmp/
 .env
+.env.local
 .env.e2e
 .env.prod
 **/.env
+**/.env.local
 **/.env.e2e
 **/.env.prod
 e2e/node_modules/

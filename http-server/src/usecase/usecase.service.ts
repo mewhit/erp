@@ -26,6 +26,7 @@ import {
   type AddUserInput,
   type AddUserResult,
   type AddUserUserInput,
+  OrganizationUser,
   type UpdateUserPasswordInput
 } from "./usecase.model.js"
 
@@ -37,6 +38,7 @@ class UseCaseError extends Data.TaggedError("UseCaseError")<{
     | "assign-customer-work-order"
     | "create-user"
     | "fetch-user"
+    | "fetch-users"
     | "create-auth"
     | "update-auth"
     | "assign-organization-role"
@@ -59,6 +61,10 @@ class UseCaseError extends Data.TaggedError("UseCaseError")<{
 
 const UserResponse = Schema.Struct({
   data: User
+})
+
+const UsersResponse = Schema.Struct({
+  data: Schema.Array(User)
 })
 
 const AuthUserPasswordResponse = Schema.Struct({
@@ -136,6 +142,7 @@ const mapApiClientError = (
     | "assign-customer-work-order"
     | "create-user"
     | "fetch-user"
+    | "fetch-users"
     | "create-auth"
     | "update-auth"
     | "assign-organization-role"
@@ -342,6 +349,94 @@ export const UsecaseService = {
 
       return organizationResponses
         .map((response) => response.data)
+        .sort((left, right) => left.name.localeCompare(right.name))
+    }),
+
+  findUsersForOrganization: (
+    currentUserId: string,
+    organizationId: string,
+    authorization: string | undefined
+  ): Effect.Effect<ReadonlyArray<OrganizationUser>, UseCaseError> =>
+    Effect.gen(function* () {
+      const usecaseApiClient = createUsecaseApiClient(authorization)
+      const currentUserOrganizationRoles =
+        yield* usecaseApiClient.organizationUserRole
+          .byUserId(currentUserId)
+          .pipe(
+            Effect.mapError((error) =>
+              mapApiClientError("fetch-organization-user-roles", error)
+            ),
+            Effect.flatMap((body) =>
+              Schema.decodeUnknown(OrganizationUserRolesResponse)(body).pipe(
+                Effect.mapError(
+                  (error) =>
+                    new UseCaseError({
+                      phase: "parse-response",
+                      message: getErrorMessage(error)
+                    })
+                )
+              )
+            )
+          )
+
+      if (
+        !currentUserOrganizationRoles.data.some(
+          (organizationUserRole) =>
+            organizationUserRole.organizationId === organizationId
+        )
+      ) {
+        return yield* Effect.fail(
+          new UseCaseError({
+            phase: "fetch-organization-user-roles",
+            message: "Organization is not assigned to current user",
+            status: 404
+          })
+        )
+      }
+
+      const organizationUserRoles =
+        yield* usecaseApiClient.organizationUserRole
+          .byOrganizationId(organizationId)
+          .pipe(
+            Effect.mapError((error) =>
+              mapApiClientError("fetch-organization-user-roles", error)
+            ),
+            Effect.flatMap((body) =>
+              Schema.decodeUnknown(OrganizationUserRolesResponse)(body).pipe(
+                Effect.mapError(
+                  (error) =>
+                    new UseCaseError({
+                      phase: "parse-response",
+                      message: getErrorMessage(error)
+                    })
+                )
+              )
+            )
+          )
+
+      const usersResponse = yield* usecaseApiClient.user.get().pipe(
+        Effect.mapError((error) => mapApiClientError("fetch-users", error)),
+        Effect.flatMap((body) =>
+          Schema.decodeUnknown(UsersResponse)(body).pipe(
+            Effect.mapError(
+              (error) =>
+                new UseCaseError({
+                  phase: "parse-response",
+                  message: getErrorMessage(error)
+                })
+            )
+          )
+        )
+      )
+
+      const organizationUserIds = new Set(
+        organizationUserRoles.data.map(
+          (organizationUserRole) => organizationUserRole.userId
+        )
+      )
+
+      return usersResponse.data
+        .filter((user) => organizationUserIds.has(user.id))
         .sort((left, right) => left.name.localeCompare(right.name))
     }),
 

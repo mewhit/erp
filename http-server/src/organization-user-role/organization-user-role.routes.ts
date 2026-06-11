@@ -18,6 +18,10 @@ const OrganizationUserRoleByUserPathParams = Schema.Struct({
   userId: Schema.String
 })
 
+const OrganizationUserRoleByOrganizationPathParams = Schema.Struct({
+  organizationId: Schema.String
+})
+
 const notFound = (id: string) =>
   HttpServerResponse.json(
     {
@@ -50,6 +54,22 @@ export const organizationUserRoleRoutes = HttpRouter.empty.pipe(
       )
       const organizationUserRoles = yield* Effect.promise(() =>
         OrganizationUserRoleService.findByUserId(userId)
+      )
+
+      return yield* HttpServerResponse.json({
+        data: organizationUserRoles
+      })
+    })
+  ),
+
+  HttpRouter.get(
+    "/by-organization/:organizationId",
+    Effect.gen(function* () {
+      const { organizationId } = yield* HttpRouter.schemaPathParams(
+        OrganizationUserRoleByOrganizationPathParams
+      )
+      const organizationUserRoles = yield* Effect.promise(() =>
+        OrganizationUserRoleService.findByOrganizationId(organizationId)
       )
 
       return yield* HttpServerResponse.json({

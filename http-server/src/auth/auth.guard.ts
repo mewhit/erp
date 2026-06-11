@@ -27,6 +27,25 @@ export const getBearerToken = (
   return token
 }
 
+const getChatWebSocketToken = (
+  request: HttpServerRequest.HttpServerRequest
+): string | undefined => {
+  if (!request.originalUrl.startsWith("/chat/ws")) {
+    return undefined
+  }
+
+  try {
+    const host = request.headers.host ?? "localhost"
+    const protocol =
+      request.headers["x-forwarded-proto"] === "https" ? "https" : "http"
+    const url = new URL(request.originalUrl, `${protocol}://${host}`)
+
+    return url.searchParams.get("token") ?? undefined
+  } catch {
+    return undefined
+  }
+}
+
 const unauthorized = () =>
   HttpServerResponse.json(
     {
@@ -41,7 +60,9 @@ export const authGuard = HttpMiddleware.make((app) =>
   Effect.gen(function* () {
     const request = yield* HttpServerRequest.HttpServerRequest
 
-    const token = getBearerToken(request.headers.authorization)
+    const token =
+      getBearerToken(request.headers.authorization) ??
+      getChatWebSocketToken(request)
 
     if (token === undefined) {
       return yield* unauthorized()

@@ -153,3 +153,7 @@ export const AddUserResult = Schema.Struct({
 })
 
 export type AddUserResult = typeof AddUserResult.Type
+
+export const OrganizationUser = AddUserUser
+
+export type OrganizationUser = typeof OrganizationUser.Type

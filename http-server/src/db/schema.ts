@@ -236,3 +236,28 @@ export const organizationUserRoles = pgTable(
     index("organization_user_roles_role_id_index").on(table.roleId)
   ]
 )
+
+export const chatMessages = pgTable(
+  "chat_messages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    fromUserId: uuid("from_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    toUserId: uuid("to_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    text: varchar("text", { length: 2000 }).notNull(),
+    clientMessageId: varchar("client_message_id", { length: 255 }),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => [
+    index("chat_messages_organization_id_index").on(table.organizationId),
+    index("chat_messages_from_user_id_index").on(table.fromUserId),
+    index("chat_messages_to_user_id_index").on(table.toUserId),
+    index("chat_messages_created_at_index").on(table.createdAt)
+  ]
+)

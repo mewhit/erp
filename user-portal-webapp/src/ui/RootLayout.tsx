@@ -7,7 +7,8 @@ import { getOrganizations, type Organization } from "../services/userData";
 const navItems = [
   { to: "/", label: "Dashboard" },
   { to: "/orders", label: "Work orders" },
-  { to: "/customers", label: "Customers" }
+  { to: "/customers", label: "Customers" },
+  { to: "/chat", label: "Chat" }
 ];
 
 export type PortalOutletContext = {

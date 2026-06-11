@@ -1,4 +1,5 @@
 import { Navigate, createBrowserRouter } from "react-router-dom";
+import { ChatPage } from "./pages/ChatPage";
 import { CustomerDetailsPage } from "./pages/CustomerDetailsPage";
 import { CustomersPage } from "./pages/CustomersPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
       {
         path: "customers/:customerId",
         element: <CustomerDetailsPage />
+      },
+      {
+        path: "chat",
+        element: <ChatPage />
       },
       {
         path: "new",

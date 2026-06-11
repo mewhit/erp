@@ -1,5 +1,5 @@
 import { expect, type APIRequestContext } from "@playwright/test";
-import { getRequiredEnv } from "../env";
+import { getRequiredEnv } from "../load-dotenv";
 
 export const apiBaseUrl = getRequiredEnv("API_BASE_URL");
 export const testPassword = "Playwright-login-2026!";

@@ -5,6 +5,7 @@ import { Config, Layer } from "effect"
 import { createServer } from "node:http"
 import "./env.js"
 import { authGuard, authPublicRoutes, authRoutes } from "./auth/index.js"
+import { chatRoutes, ChatServiceLive } from "./chat/index.js"
 import { customerWorkOrderRoutes } from "./customer-work-order/index.js"
 import { customerRoutes } from "./customer/index.js"
 import { itemRoutes } from "./item/index.js"
@@ -38,6 +39,7 @@ const routes = HttpRouter.empty.pipe(
     })
   ),
   HttpRouter.mount("/auth", authRoutes),
+  HttpRouter.mount("/chat", chatRoutes),
   HttpRouter.mount("/customer-work-orders", customerWorkOrderRoutes),
   HttpRouter.mount("/customers", customerRoutes),
   HttpRouter.mount("/items", itemRoutes),
@@ -69,4 +71,9 @@ const AppLive = routes.pipe(
   HttpServer.withLogAddress
 )
 
-NodeRuntime.runMain(Layer.launch(Layer.provide(AppLive, ServerLive)))
+const MainLive = AppLive.pipe(
+  Layer.provide(ChatServiceLive),
+  Layer.provide(ServerLive)
+)
+
+NodeRuntime.runMain(Layer.launch(MainLive))
